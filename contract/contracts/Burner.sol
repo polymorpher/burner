@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 // See https://github.com/brucdarc/burn-mechanism/blob/83af811e6a31c721d59284735eca939dba23525d/contracts/Remburner.sol
 // `RemBurner` was licensed under GPL-3.0
 contract Burner is Pausable, Ownable {
-    event Burned(address indexed from, address indexed to, address indexed asset, address indexed stablecoin, uint256 burnedAmount, uint256 stablecoinAmount);
+    event Burned(address indexed from, address indexed to, address indexed asset, address stablecoin, uint256 burnedAmount, uint256 stablecoinAmount);
     uint256 constant PRECISION_FACTOR = 1e18;
 
     uint256 public minRate; // minimum "exchange rate" the user would get in this round in number of units of stablecoins, for burning some amount of ERC20 tokens that had a market-value of 1.0 USD(T) per unit of token prior to the hack. The value is multiplied by `PRECISION_FACTOR` to accommodate for fractions. For example, if a user holds 1.0 USDC and the current mechanism allows the user to at least get 0.1 (new) stablecoin, the value of `minRate` should therefore be set to 0.1 * `PRECISION_FACTOR` = 1e17
@@ -126,6 +126,6 @@ contract Burner is Pausable, Ownable {
         exchangedAmounts[msg.sender] += totalAmountExchanged;
         IERC20(_asset).transferFrom(msg.sender, address(0x0), _burnAmount);
         IERC20(stablecoin).transferFrom(stablecoinHolder, _to, totalAmountExchanged);
-        emit Burned(msg.sender, _to, _asset, _burnAmount, totalAmountExchanged);
+        emit Burned(msg.sender, _to, _asset, stablecoin, _burnAmount, totalAmountExchanged);
     }
 }
