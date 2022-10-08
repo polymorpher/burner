@@ -17,11 +17,9 @@ contract Burner is Pausable, Ownable {
     uint256 public lastResetTimestamp; // when the last exchange occurred
 
     address public stablecoin; // the contract address of the new stablecoin which the user would get. The intended value is USDS (at address 0x471f66F75af9238A2FA23bA23862B5957109fB21). Here in comments, we use "new stablecoin" and stablecoin interchangeably most of the time. Sometimes we also use the term referring to some depegged tokens which used to be stablecoins before the hack, but we would explicitly state so and clarify.
-
     address stablecoinHolder; // the address of the wallet which holds the stablecoin. The address should approve this contract's address up to a sufficient amount, so that this contract can send the stablecoin on behalf of the `stablecoinHolder` wallet to users
 
     uint256 public resetThresholdAmount; // The number of stablecoins (in fractional-units) cumulatively received by the users to trigger a "reset event". A "reset event" would result in the current exchange rate to be decreased to minRate. When any user burns their ERC20 tokens, they could receive some stablecoins, thereby contribute towards the reset threshold. Note that the current exchange rate linearly decreases proportionally to the ratio of `#stablecoins received by the user / reset threshold` no matter whether the reset threshold is reached. For example, if we want to trigger a reset event at the threshold of 250 USDS (which has 6 decimals), then resetThresholdAmount is 2.5e+8
-
     uint256 public resetPeriod = 3 hours; // as time elapses after each reset, the exchange rate linearly increases over time, proportional to the ratio of `time elapsed / resetPeriod`
 
     mapping(address => bool) allowList; // when `useAllowList` is set to true, only addresses in allowList would be able to burn permitted ERC20 tokens and exchange for stablecoins
@@ -124,9 +122,8 @@ contract Burner is Pausable, Ownable {
         uint256 totalAmountExchanged = assetValueAmount * currentExchangeRate / PRECISION_FACTOR;
         require(exchangedAmounts[_from] + totalAmountExchanged <= perUserLimitAmount, "over user limit");
         updateRate(totalAmountExchanged);
+        exchangedAmounts[_from] += totalAmountExchanged;
         IERC20(_asset).transferFrom(_from, address(0x0), _burnAmount);
         IERC20(stablecoin).transferFrom(stablecoinHolder, _to, totalAmountExchanged);
-        exchangedAmounts[_from] += totalAmountExchanged;
     }
-
 }
