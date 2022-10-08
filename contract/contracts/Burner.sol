@@ -12,8 +12,8 @@ contract Burner is Pausable, Ownable {
 
     uint256 public minRate; // minimum "exchange rate" the user would get in this round in number of units of stablecoins, for burning some amount of ERC20 tokens that had a market-value of 1.0 USD(T) per unit of token prior to the hack. The value is multiplied by `PRECISION_FACTOR` to accommodate for fractions. For example, if a user holds 1.0 USDC and the current mechanism allows the user to at least get 0.1 (new) stablecoin, the value of `minRate` should therefore be set to 0.1 * `PRECISION_FACTOR` = 1e17
     uint256 public maxRate; // similar to `minRate`, but represents the maximum number of units of stablecoins the user would get in this round
+    uint256 public baseRate; // the current base exchange rate, without any bonus based on elapsed time since the last exchange
 
-    uint256 public lastRate; // the exchange rate which the last exchange was executed at
     uint256 public lastResetTimestamp; // when the last exchange occurred
 
     address public stablecoin; // the contract address of the new stablecoin which the user would get. The intended value is USDS (at address 0x471f66F75af9238A2FA23bA23862B5957109fB21). Here in comments, we use "new stablecoin" and stablecoin interchangeably most of the time. Sometimes we also use the term referring to some depegged tokens which used to be stablecoins before the hack, but we would explicitly state so and clarify.
@@ -68,7 +68,7 @@ contract Burner is Pausable, Ownable {
         resetThresholdAmount = _resetThresholdAmount;
         resetPeriod = _resetPeriod;
         perUserLimitAmount = _perUserLimitAmount;
-        lastRate = _minRate;
+        baseRate = _minRate;
         lastResetTimestamp = block.timestamp;
     }
 
@@ -84,7 +84,7 @@ contract Burner is Pausable, Ownable {
     function getCurrentExchangeRate() public view returns (uint256){
         uint256 timeElapsed = block.timestamp - lastResetTimestamp;
         uint256 rateIncrease = (maxRate - minRate) * timeElapsed / resetPeriod;
-        uint256 totalRate = rateIncrease + lastRate;
+        uint256 totalRate = rateIncrease + baseRate;
         return totalRate > maxRate ? maxRate : totalRate;
     }
 
@@ -100,7 +100,7 @@ contract Burner is Pausable, Ownable {
     }
 
     function updateRate(uint256 _totalAmountExchanged) internal {
-        lastRate = getNewRateAfterExchange(_totalAmountExchanged);
+        baseRate = getNewRateAfterExchange(_totalAmountExchanged);
         lastResetTimestamp = block.timestamp;
     }
 
