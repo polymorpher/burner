@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 // See https://github.com/brucdarc/burn-mechanism/blob/83af811e6a31c721d59284735eca939dba23525d/contracts/Remburner.sol
 // `RemBurner` was licensed under GPL-3.0
 contract Burner is Pausable, Ownable {
+    event Burned(address indexed from, address indexed to, address indexed asset, address indexed stablecoin, uint256 burnedAmount, uint256 stablecoinAmount);
     uint256 constant PRECISION_FACTOR = 1e18;
 
     uint256 public minRate; // minimum "exchange rate" the user would get in this round in number of units of stablecoins, for burning some amount of ERC20 tokens that had a market-value of 1.0 USD(T) per unit of token prior to the hack. The value is multiplied by `PRECISION_FACTOR` to accommodate for fractions. For example, if a user holds 1.0 USDC and the current mechanism allows the user to at least get 0.1 (new) stablecoin, the value of `minRate` should therefore be set to 0.1 * `PRECISION_FACTOR` = 1e17
@@ -32,8 +33,8 @@ contract Burner is Pausable, Ownable {
     uint256 public perUserLimitAmount; // maximum number of stablecoins (in fractional-units) that a user may get
     mapping(address => uint256) public exchangedAmounts; // the cumulative amount of stablecoins (in fractional-units) each user exchanged so far
 
-    modifier onlyAllowedAddresses(address _user) {
-        require(!useAllowList || allowList[_user], "not on list");
+    modifier onlyAllowedAddresses() {
+        require(!useAllowList || allowList[msg.sender], "not on list");
         _;
     }
     modifier onlyWhenActive() {
@@ -113,17 +114,18 @@ contract Burner is Pausable, Ownable {
     // @param _to where the stablecoin would be sent to after burning the user's ERC20 token
     // @param _burnAmount the amount of ERC20 token the user wants to burn in exchange for stablecoin
     // @param _minExchangeRate the lowest exchange rate the user would accept to proceed with burning and exchanging
-    function exchange(address _asset, address _from, address _to, uint256 _burnAmount, uint256 _minExchangeRate) external onlyAllowedAddresses(_from) onlyWhenActive {
+    function exchange(address _asset, address _to, uint256 _burnAmount, uint256 _minExchangeRate) external onlyAllowedAddresses onlyWhenActive {
         uint256 valueRate = tokenValueRate[_asset];
         require(valueRate > 0, "unsupported asset");
         uint256 currentExchangeRate = getCurrentExchangeRate();
         require(currentExchangeRate > _minExchangeRate, "cannot satisfy rate");
         uint256 assetValueAmount = _burnAmount * valueRate / PRECISION_FACTOR;
         uint256 totalAmountExchanged = assetValueAmount * currentExchangeRate / PRECISION_FACTOR;
-        require(exchangedAmounts[_from] + totalAmountExchanged <= perUserLimitAmount, "over user limit");
+        require(exchangedAmounts[msg.sender] + totalAmountExchanged <= perUserLimitAmount, "over user limit");
         updateRate(totalAmountExchanged);
-        exchangedAmounts[_from] += totalAmountExchanged;
-        IERC20(_asset).transferFrom(_from, address(0x0), _burnAmount);
+        exchangedAmounts[msg.sender] += totalAmountExchanged;
+        IERC20(_asset).transferFrom(msg.sender, address(0x0), _burnAmount);
         IERC20(stablecoin).transferFrom(stablecoinHolder, _to, totalAmountExchanged);
+        emit Burned(msg.sender, _to, _asset, _burnAmount, totalAmountExchanged);
     }
 }
