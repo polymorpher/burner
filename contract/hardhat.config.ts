@@ -35,28 +35,23 @@ const hardhatUserconfig: HardhatUserConfig = {
       },
       saveDeployments: false
     },
-    ethlocal: {
-      url: process.env.ETH_LOCAL_URL,
-      gasPrice: 20000000000,
-      gas: 6000000,
+    local: {
+      url: process.env.LOCAL_URL,
+      accounts: { mnemonic: process.env.TEST_MNEMONIC },
       live: false,
-      saveDeployments: true,
       tags: ['local']
     },
     testnet: {
       url: process.env.TESTNET_URL,
-      accounts: [process.env.PRIVATE_KEY || ''],
+      accounts: { mnemonic: process.env.TEST_MNEMONIC },
       chainId: 1666700000,
       live: true,
-      saveDeployments: true,
       tags: ['staging'],
-      gas: 2100000,
-      gasPrice: 5000000000,
       gasMultiplier: 2
     },
     mainnet: {
       url: process.env.MAINNET_URL,
-      accounts: [process.env.PRIVATE_KEY || ''],
+      accounts: { mnemonic: process.env.MNEMONIC },
       chainId: 1666600000
     }
   },
