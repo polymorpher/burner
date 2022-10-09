@@ -1,0 +1,42 @@
+@import '../assets/fonts/decima-mono.css';
+
+:root {
+  --text-color: #333;
+  --background-color: #fff;
+}
+
+html {
+  background-color: var(--background-color);
+}
+body {
+  margin: 0;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font-family: 'DecimaMono', system-ui;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 100%;
+  }
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 100%;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.5s linear both;
+}
+
+.fade-out {
+  animation: fade-out 0.5s linear both;
+}
