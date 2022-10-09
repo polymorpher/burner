@@ -12,7 +12,7 @@ contract FakeUSDC is ERC20, Ownable {
         _mint(msg.sender, _amount);
     }
 
-    function mint(address to, uint256 amount) public onlyOwner {
+    function mint(address to, uint256 amount) public {
         _mint(to, amount);
     }
 }
