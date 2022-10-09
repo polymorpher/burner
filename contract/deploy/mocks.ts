@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { ethers } from 'hardhat'
 import * as dotenv from 'dotenv'
-dotenv.config({ path: '.env.mocks' })
+dotenv.config({ path: 'mocks.env' })
 
 const f = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments: { deploy }, getNamedAccounts } = hre
@@ -24,10 +24,10 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
   console.log('FakeUSDS deployed to:', usds.address)
   let tx, receipt
   tx = await usds.transfer(process.env.USDS_HOLDER, 10000e+6)
-  receipt = tx.wait()
+  receipt = await tx.wait()
   console.log(`Transfer 10000 USDS to holder - tx: ${tx.hash}`, receipt)
-  tx = await usds.transfer(process.env.USDC_HOLDER, 10000e+6)
-  receipt = tx.wait()
+  tx = await usdc.transfer(process.env.USDC_HOLDER, 10000e+6)
+  receipt = await tx.wait()
   console.log(`Transfer 10000 USDC to holder - tx: ${tx.hash}`, receipt)
 }
 f.tags = ['Mocks']

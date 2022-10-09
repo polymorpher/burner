@@ -38,15 +38,13 @@ const hardhatUserconfig: HardhatUserConfig = {
     local: {
       url: process.env.LOCAL_URL,
       accounts: { mnemonic: process.env.TEST_MNEMONIC },
-      live: false,
-      tags: ['local']
+      live: false
     },
     testnet: {
       url: process.env.TESTNET_URL,
       accounts: { mnemonic: process.env.TEST_MNEMONIC },
       chainId: 1666700000,
       live: true,
-      tags: ['staging'],
       gasMultiplier: 2
     },
     mainnet: {
