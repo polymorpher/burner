@@ -1,6 +1,7 @@
 import Burner from '../../assets/abi/Burner.json'
 import IERC20Metadata from '../../assets/abi/IERC20Metadata.json'
 import IERC20 from '../../assets/abi/IERC20.json'
+import IFakeAsset from '../../assets/abi/IFakeAsset.json'
 import Contract from 'web3-eth-contract'
 import BN from 'bn.js'
 import config from '../../config'
@@ -152,9 +153,10 @@ const apis = ({ web3, address }) => {
         console.log(tx?.events)
         const burned = tx?.events.Burned
         if (onSuccess) {
-          const totalAmountExchanged = burned?.returnValues?.totalAmountExchanged
+          const totalAmountExchanged = burned?.returnValues?.stablecoinAmount
           const burnedAmount = burned?.returnValues?.burnedAmount
           onSuccess({
+            transactionHash: tx.transactionHash,
             totalAmountExchanged: new BN(totalAmountExchanged).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(stablecoinDecimals))).toNumber() / CLIENT_PRECISION,
             burnedAmount: new BN(burnedAmount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
           })
@@ -167,7 +169,37 @@ const apis = ({ web3, address }) => {
     getExplorerUri: (txHash) => {
       return config.explorer.replace('{{txId}}', txHash)
     },
+    _approveStablecoin: async ({ amountFormatted }) => {
+      const stablecoin = await burnerContract.methods.stablecoin().call()
+      const stablecoinContract = new Contract(IERC20, stablecoin)
+      const stablecoinMetadata = new Contract(IERC20Metadata, stablecoin)
+      const decimals = await stablecoinMetadata.methods.decimals().call()
+      const amount = new BN(amountFormatted * CLIENT_PRECISION).mul(new BN(10).pow(new BN(decimals))).divn(CLIENT_PRECISION)
+      const tx = await stablecoinContract.methods.approve(config.burnerContract, amount).call({ from: address })
+      console.log('test passed', tx)
+      return stablecoinContract.methods.approve(config.burnerContract, amount).send({ from: address })
+    },
+    _getApprvalAmount: async () => {
+      const stablecoin = await burnerContract.methods.stablecoin().call()
+      const stablecoinHolder = await burnerContract.methods.stablecoinHolder().call()
+      const stablecoinContract = new Contract(IERC20, stablecoin)
+      const stablecoinMetadata = new Contract(IERC20Metadata, stablecoin)
+      const decimals = await stablecoinMetadata.methods.decimals().call()
+      const allowance = await stablecoinContract.methods.allowance(stablecoinHolder, config.burnerContract).call()
+      return new BN(allowance).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
+    },
+    _getFakeAsset: async ({ assetAddress, amountFormatted }) => {
+      const fakeAssetContract = new Contract(IFakeAsset, assetAddress)
+      const fakeAssetMetadata = new Contract(IERC20Metadata, assetAddress)
+      const decimals = await fakeAssetMetadata.methods.decimals().call()
+      const amount = new BN(amountFormatted * CLIENT_PRECISION).mul(new BN(10).pow(new BN(decimals))).divn(CLIENT_PRECISION)
+      const tx = await fakeAssetContract.methods.mint(address, amount).call()
+      console.log('test passed', tx)
+      return fakeAssetContract.methods.mint(address, amount).send({ from: address })
+    }
   }
 }
-
+if (window) {
+  window.apis = apis
+}
 export default apis
