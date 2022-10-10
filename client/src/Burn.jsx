@@ -233,6 +233,7 @@ const Burn = () => {
       <Desc>
         <BaseText>Burn depegged tokens such as USDC in exchange for <LinkWrarpper href='https://www.stably.io/post/usds-stablecoin-by-stably-launches-on-harmony/' target='_blank'>USDS</LinkWrarpper></BaseText>
       </Desc>
+      {address && <BaseText>Your address: {address}</BaseText>}
       {address &&
         <FlexColumn style={{ gap: 32 }}>
           <Col>
@@ -299,6 +300,10 @@ const Burn = () => {
         </DescLeft>}
       <DescLeft>
         <Title>FAQ</Title>
+        <QA>
+          <BaseText>Q: How do I burn something other than USDC?</BaseText>
+          <BaseText>A: In the next round (end of Oct 2022) we will add more token types</BaseText>
+        </QA>
         <QA>
           <BaseText>Q: How is the ratio determined?</BaseText>
           <BaseText>A: It is dynamically computed based on how much and how often other people are making the exchanges. There is a minimum and a maximum rate, updated by us every two weeks. Within this range, the rate automatically decreases when some tokens get burned, and automatically resets to minimum when a threshold is reached. The rate also automatically goes up over time until it reaches the maximum. If you are not happy for the rate right now, you could wait for rate to go up later, but there is a bi-weekly limit of USDS available for exchange, so it is possible that all available USDS will be gone before you can get a rate that you want, and you would have to wait for the next bi-weekly round. For more information, checkout our <LinkWrarpper href='https://github.com/polymorpher/burner' target='_blank'> GitHub </LinkWrarpper> </BaseText>
