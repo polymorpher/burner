@@ -25,10 +25,10 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
   let tx, receipt
   tx = await usds.transfer(process.env.USDS_HOLDER, 10000e+6)
   receipt = await tx.wait()
-  console.log(`Transfer 10000 USDS to holder - tx: ${tx.hash}`, receipt)
+  console.log(`Transfer 10000 USDS to holder - tx: ${tx.hash}`, JSON.stringify(receipt))
   tx = await usdc.transfer(process.env.USDC_HOLDER, 10000e+6)
   receipt = await tx.wait()
-  console.log(`Transfer 10000 USDC to holder - tx: ${tx.hash}`, receipt)
+  console.log(`Transfer 10000 USDC to holder - tx: ${tx.hash}`, JSON.stringify(receipt))
 }
 f.tags = ['Mocks']
 export default f
