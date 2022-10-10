@@ -62,7 +62,9 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
     resetPeriod,
     isShutdown
   }
-  Object.keys(displayObj).forEach(k => displayObj[k] = displayObj[k].toString())
+  Object.keys(displayObj).forEach(k => {
+    displayObj[k] = displayObj[k].toString()
+  })
   console.log('Please manually verify parameters:', displayObj)
 }
 f.tags = ['Burner']
