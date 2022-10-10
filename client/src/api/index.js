@@ -26,7 +26,7 @@ const apis = ({ web3, address }) => {
       const perUserLimitAmountP = burnerContract.methods.perUserLimitAmount().call()
       const minRateP = burnerContract.methods.minRate().call()
       const maxRateP = burnerContract.methods.maxRate().call()
-      const baseRateP = burnerContract.methods.lastRate().call()
+      const baseRateP = burnerContract.methods.baseRate().call()
       const lastResetTimestampP = burnerContract.methods.lastResetTimestamp().call()
       const stablecoinP = burnerContract.methods.stablecoin().call()
       const stablecoinHolderP = burnerContract.methods.stablecoinHolder().call()
