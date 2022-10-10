@@ -41,15 +41,14 @@ const apis = ({ web3, address }) => {
         minRateP, maxRateP, baseRateP, lastResetTimestampP, stablecoinP, stablecoinHolderP, resetThresholdAmountP, resetPeriodP,
         isShutdownP])
       const tokenMetadata = new Contract(IERC20Metadata, stablecoin)
-      const decimalsP = tokenMetadata.methods.name().call()
+      const nameP = tokenMetadata.methods.name().call()
       const symbolP = tokenMetadata.methods.symbol().call()
-      const nameP = tokenMetadata.methods.decimals().call()
+      const decimalsP = tokenMetadata.methods.decimals().call()
       const [decimals, symbol, name] = await Promise.all([decimalsP, symbolP, nameP])
-
       return {
-        minRate: new BN(minRate).div(PRECISION_FACTOR).toNumber(),
-        maxRate: new BN(maxRate).div(PRECISION_FACTOR).toNumber(),
-        baseRate: new BN(baseRate).div(PRECISION_FACTOR).toNumber(),
+        minRate: new BN(minRate).muln(CLIENT_PRECISION).div(PRECISION_FACTOR).toNumber() / CLIENT_PRECISION,
+        maxRate: new BN(maxRate).muln(CLIENT_PRECISION).div(PRECISION_FACTOR).toNumber() / CLIENT_PRECISION,
+        baseRate: new BN(baseRate).muln(CLIENT_PRECISION).div(PRECISION_FACTOR).toNumber() / CLIENT_PRECISION,
         lastResetTimestamp: parseInt(lastResetTimestamp) * 1000,
         stablecoin: {
           address: stablecoin,
@@ -58,8 +57,8 @@ const apis = ({ web3, address }) => {
           decimals,
         },
         stablecoinHolder,
-        perUserLimitAmount: new BN(perUserLimitAmount).div(new BN(10).pow(new BN(decimals))).toNumber(),
-        resetThresholdAmount: new BN(resetThresholdAmount).div(new BN(10).pow(new BN(decimals))).toNumber(),
+        perUserLimitAmount: new BN(perUserLimitAmount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION,
+        resetThresholdAmount: new BN(resetThresholdAmount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION,
         resetPeriod: parseInt(resetPeriod) * 1000,
         isShutdown
       }
@@ -67,13 +66,16 @@ const apis = ({ web3, address }) => {
 
     checkIsAllowed: async () => {
       const isAllowed = await burnerContract.methods.allowList(address).call()
-      const useAllowList = await burnerContract.methods.useAllowList(address).call()
+      const useAllowList = await burnerContract.methods.useAllowList().call()
       return !useAllowList || isAllowed
     },
 
-    getExchangedAmount: async () => {
+    getExchangedAmount: async ({ decimals }) => {
+      if (!decimals) {
+        return 0
+      }
       const amount = await burnerContract.methods.exchangedAmounts(address).call()
-      return new BN(amount).toString()
+      return new BN(amount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
     },
 
     getERC20Balance: async ({ assetAddress }) => {
@@ -81,7 +83,7 @@ const apis = ({ web3, address }) => {
       const tokenContract = new Contract(IERC20, assetAddress)
       const balance = await tokenContract.methods.balanceOf(address).call()
       const decimals = await tokenMetadata.methods.decimals().call()
-      const formatted = new BN(balance).div(new BN(10).pow(new BN(decimals))).toNumber()
+      const formatted = new BN(balance).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
       return { formatted, balance, decimals }
     },
 
