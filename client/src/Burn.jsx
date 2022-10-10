@@ -47,6 +47,8 @@ const Burn = () => {
   const [userBalanceFormatted, setUserBalanceFormatted] = useState(null)
   const [assetSymbol, setAssetSymbol] = useState(null)
 
+  // console.log(parameters)
+
   async function init () {
     const provider = await detectEthereumProvider()
     setProvider(provider)
@@ -129,7 +131,7 @@ const Burn = () => {
       if (!approvalTx) {
         return
       }
-      const { transactionHash } = await client.exchange({
+      return client.exchange({
         assetAddress,
         burnAmountFormatted,
         minExchangeRate: parameters.minExchangeRate,
@@ -137,17 +139,17 @@ const Burn = () => {
         onFailed: (ex) => {
           toast.error(`Failed to burn. Error: ${ex.toString()}`)
         },
-        onSuccess: ({ totalAmountExchanged, burnedAmount }) => {
-          toast.error(`Burned ${burnedAmount} ${assetSymbol}. Received ${totalAmountExchanged} ${parameters.stablecoin.symbol}`)
+        onSuccess: ({ totalAmountExchanged, burnedAmount, transactionHash }) => {
+          toast.success(`Burned ${burnedAmount} ${assetSymbol}. Received ${totalAmountExchanged} ${parameters.stablecoin.symbol}`)
+          toast.success(
+            <FlexRow>
+              <BaseText style={{ marginRight: 8 }}>Done!</BaseText>
+              <LinkWrarpper target='_blank' href={client.getExplorerUri(transactionHash)}>
+                <BaseText>View transaction</BaseText>
+              </LinkWrarpper>
+            </FlexRow>)
         }
       })
-      toast.success(
-        <FlexRow>
-          <BaseText style={{ marginRight: 8 }}>Done!</BaseText>
-          <LinkWrarpper target='_blank' href={client.getExplorerUri(transactionHash)}>
-            <BaseText>View transaction</BaseText>
-          </LinkWrarpper>
-        </FlexRow>)
     } catch (ex) {
       console.error(ex)
       toast.error(`Unexpected error: ${ex.toString()}`)
