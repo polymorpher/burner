@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import {SmallText} from "./Text";
 
 export const Button = styled.button`
   font-family: 'DecimaMono', system-ui;
@@ -47,6 +48,10 @@ export const Input = styled.input`
   &:hover{
     border-bottom: 1px solid black;
   }
+  &:disabled{
+    color: grey;
+    background: lightgrey;
+  }
 `
 
 export const LinkWrarpper = styled.a`
@@ -65,5 +70,12 @@ export const FloatingSwitch = styled(LinkWrarpper)`
   right: 0;
   bottom: -8px;
   font-size: 12px;
+  margin-right: 0;
+`
+
+export const FloatingText = styled(SmallText)`
+  position: absolute;
+  right: 0;
+  bottom: -8px;
   margin-right: 0;
 `
