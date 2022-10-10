@@ -83,16 +83,51 @@ const apis = ({ web3, address }) => {
       const tokenContract = new Contract(IERC20, assetAddress)
       const balance = await tokenContract.methods.balanceOf(address).call()
       const decimals = await tokenMetadata.methods.decimals().call()
+      const symbol = await tokenMetadata.methods.symbol().call()
       const formatted = new BN(balance).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
-      return { formatted, balance, decimals }
+      return { formatted, balance, decimals, symbol }
     },
 
-    exchange: async ({ assetAddress, burnAmountFormatted, minExchangeRate, onFailed, onSubmitted, onSuccess }) => {
+    approve: async ({ assetAddress, burnAmountFormatted, onFailed }) => {
+      const MAX_BN = new BN(new Uint8Array(32).fill(0xff))
+      const tokenContract = new Contract(IERC20, assetAddress)
+      const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
+      const allowance = await tokenContract.methods.allowance(address, config.burnerContract).call()
+      const decimals = await tokenMetadata.methods.decimals().call()
+      burnAmountFormatted = new BN(burnAmountFormatted * CLIENT_PRECISION).mul(new BN(10).pow(new BN(decimals))).divn(CLIENT_PRECISION)
+      console.log(allowance.toString(), burnAmountFormatted.toString())
+      if (new BN(allowance).gte(burnAmountFormatted)) {
+        return true
+      }
+      try {
+        const testTx = await tokenContract.methods.approve(config.burnerContract, MAX_BN).call({ from: address })
+        if (config.debug) {
+          console.log('testTx', testTx)
+        }
+      } catch (ex) {
+        const err = ex.toString()
+        console.error('testTx Error', err)
+        onFailed && onFailed(ex)
+        return null
+      }
+      try {
+        const tx = await tokenContract.methods.approve(config.burnerContract, MAX_BN).send({ from: address })
+        if (config.debug) {
+          console.log(JSON.stringify(tx))
+        }
+        console.log(tx?.events)
+        return tx
+      } catch (ex) {
+        onFailed && onFailed(ex, true)
+      }
+    },
+    exchange: async ({ assetAddress, burnAmountFormatted, minExchangeRate, onFailed, onSubmitted, onSuccess, stablecoinDecimals }) => {
       minExchangeRate = new BN(minExchangeRate).mul(PRECISION_FACTOR)
       const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
+      let decimals
       try {
-        const decimals = await tokenMetadata.methods.decimals().call()
-        burnAmountFormatted = new BN(burnAmountFormatted).mul(new BN(10).pow(new BN(decimals)))
+        decimals = await tokenMetadata.methods.decimals().call()
+        burnAmountFormatted = new BN(burnAmountFormatted * CLIENT_PRECISION).mul(new BN(10).pow(new BN(decimals))).divn(CLIENT_PRECISION)
       } catch (ex) {
         throw new Error(`Cannot read from token contract ${assetAddress}`)
       }
@@ -119,8 +154,12 @@ const apis = ({ web3, address }) => {
         if (onSuccess) {
           const totalAmountExchanged = burned?.returnValues?.totalAmountExchanged
           const burnedAmount = burned?.returnValues?.burnedAmount
-          onSuccess({ totalAmountExchanged, burnedAmount })
+          onSuccess({
+            totalAmountExchanged: new BN(totalAmountExchanged).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(stablecoinDecimals))).toNumber() / CLIENT_PRECISION,
+            burnedAmount: new BN(burnedAmount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
+          })
         }
+        return tx
       } catch (ex) {
         onFailed && onFailed(ex, true)
       }

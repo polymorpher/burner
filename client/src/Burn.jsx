@@ -45,6 +45,7 @@ const Burn = () => {
   const [canExchange, setCanExchange] = useState(false)
   const [exchangedAmount, setExchangedAmount] = useState(0)
   const [userBalanceFormatted, setUserBalanceFormatted] = useState(null)
+  const [assetSymbol, setAssetSymbol] = useState(null)
 
   async function init () {
     const provider = await detectEthereumProvider()
@@ -120,10 +121,25 @@ const Burn = () => {
       return toast.error('You do not have sufficient asset to burn. Please adjust the amount')
     }
     try {
+      const approvalTx = await client.approve({
+        assetAddress,
+        burnAmountFormatted,
+        onFailed: ex => toast.error(`Failed to approve burner to act on your behalf. Error: ${ex.toString()}`)
+      })
+      if (!approvalTx) {
+        return
+      }
       const { transactionHash } = await client.exchange({
         assetAddress,
         burnAmountFormatted,
-        minExchangeRate: parameters.minExchangeRate
+        minExchangeRate: parameters.minExchangeRate,
+        stablecoinDecimals: parameters.stablecoin.decimals,
+        onFailed: (ex) => {
+          toast.error(`Failed to burn. Error: ${ex.toString()}`)
+        },
+        onSuccess: ({ totalAmountExchanged, burnedAmount }) => {
+          toast.error(`Burned ${burnedAmount} ${assetSymbol}. Received ${totalAmountExchanged} ${parameters.stablecoin.symbol}`)
+        }
       })
       toast.success(
         <FlexRow>
@@ -134,7 +150,7 @@ const Burn = () => {
         </FlexRow>)
     } catch (ex) {
       console.error(ex)
-      toast.error(`Failed to burn. Error: ${ex.toString()}`)
+      toast.error(`Unexpected error: ${ex.toString()}`)
     }
   }
   const estimateRate = (timeElapsed) => {
@@ -187,9 +203,10 @@ const Burn = () => {
     if (!assetAddress || !client) {
       return
     }
-    client.getERC20Balance({ assetAddress }).then(({ formatted }) => {
+    client.getERC20Balance({ assetAddress }).then(({ formatted, symbol }) => {
       console.log(assetAddress, formatted)
       setUserBalanceFormatted(formatted)
+      setAssetSymbol(symbol)
     })
   }, [assetAddress, client])
 
