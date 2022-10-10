@@ -240,7 +240,7 @@ const Burn = () => {
             {exchangeRate ? <SmallText style={{ color: 'grey' }}>1.0 1USDC ≈ {exchangeRate} USDS</SmallText> : <TailSpin stroke='grey' width={16} height={16} />}
           </Row>
           <Row style={{ justifyContent: 'center' }}>
-            <Button onClick={exchange}>BURN</Button>
+            <Button onClick={exchange} disabled={inputError || !exchangeRate || inputValue === 0}>BURN</Button>
           </Row>
         </FlexColumn>}
       {!address && <Button onClick={connect} style={{ width: 'auto' }}>CONNECT METAMASK</Button>}
