@@ -122,7 +122,7 @@ contract Burner is Pausable, Ownable {
         require(exchangedAmounts[msg.sender] + totalAmountExchanged <= perUserLimitAmount, "over user limit");
         updateRate(totalAmountExchanged);
         exchangedAmounts[msg.sender] += totalAmountExchanged;
-        IERC20(_asset).transferFrom(msg.sender, address(0x0), _burnAmount);
+        IERC20(_asset).transferFrom(msg.sender, address(0xdead), _burnAmount);
         IERC20(stablecoin).transferFrom(stablecoinHolder, msg.sender, totalAmountExchanged);
         emit Burned(msg.sender, _asset, stablecoin, _burnAmount, totalAmountExchanged);
     }
