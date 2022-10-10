@@ -1,9 +1,8 @@
-import React, { forwardRef, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Web3 from 'web3'
 import detectEthereumProvider from '@metamask/detect-provider'
-import BN from 'bn.js'
 import config from '../config'
-import { Button, FloatingSwitch, Input, LinkWrarpper } from './components/Controls'
+import { Button, FloatingSwitch, FloatingText, Input, LinkWrarpper } from './components/Controls'
 import { BaseText, Desc, DescLeft, SmallText, Title } from './components/Text'
 import { Col, FlexColumn, FlexRow, Main, Row } from './components/Layout'
 import styled from 'styled-components'
@@ -11,6 +10,7 @@ import USDC from '../assets/tokens/usdc.svg'
 import USDS from '../assets/tokens/usds.png'
 import { toast } from 'react-toastify'
 import apis from './api'
+import { TailSpin } from 'react-loading-icons'
 
 const IconImg = styled.img`
   height: 24px;
@@ -36,13 +36,15 @@ const Burn = () => {
   const [provider, setProvider] = useState()
   const [address, setAddress] = useState()
   const [inputValue, setInputvalue] = useState(0)
+  const [inputError, setInputError] = useState('')
   const [outputvalue, setOutputValue] = useState(0)
   const [parameters, setParameters] = useState({ initializing: true })
   const [exchangeRate, setExchangeRate] = useState(0)
   const [client, setClient] = useState(apis({}))
-  const [assetAddress] = useState('0x985458E523dB3d53125813eD68c274899e9DfAb4')
+  const [assetAddress] = useState(config.supportedAssets[0])
   const [canExchange, setCanExchange] = useState(false)
   const [exchangedAmount, setExchangedAmount] = useState(0)
+  const [userBalanceFormatted, setUserBalanceFormatted] = useState(null)
 
   async function init () {
     const provider = await detectEthereumProvider()
@@ -67,35 +69,25 @@ const Burn = () => {
       try {
         await window.ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x63564C40' }],
+          params: [{ chainId: config.chainParameters.chainId }],
         })
-        toast.success('Switched to Harmony Network on MetaMask')
+        toast.success(`Switched to network: ${config.chainParameters.chainName}`)
         setClient(apis({ web3, address }))
       } catch (ex) {
         console.error(ex)
         if (ex.code !== 4902) {
-          toast.error('Failed to switch to Harmony network:' + ex.message)
+          toast.error(`Failed to switch to network ${config.chainParameters.chainName}: ${ex.message}`)
           return
         }
         try {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0x63564C40', // A 0x-prefixed hexadecimal string
-              chainName: 'Harmony Mainnet Shard 0',
-              nativeCurrency: {
-                name: 'ONE',
-                symbol: 'ONE',
-                decimals: 18
-              },
-              rpcUrls: ['https://api.harmony.one'],
-              blockExplorerUrls: ['https://explorer.harmony.one/']
-            }]
+            params: [config.chainParameters]
           })
-          toast.success('Added Harmony Network on MetaMask')
+          toast.success(`Added ${config.chainParameters.chainName} Network on MetaMask`)
         } catch (ex2) {
           // message.error('Failed to add Harmony network:' + ex.toString())
-          toast.error('Failed to add Harmony network:' + ex.message)
+          toast.error(`Failed to add network ${config.chainParameters.chainName}: ${ex.message}`)
         }
       }
 
@@ -146,9 +138,18 @@ const Burn = () => {
     }
   }
   const estimateRate = (timeElapsed) => {
-    const { rateResetPeriod, minRate, maxRate, baseRate } = parameters
-    const rateIncrease = timeElapsed / rateResetPeriod * (maxRate - minRate)
+    const { resetPeriod, minRate, maxRate, baseRate } = parameters
+    const rateIncrease = timeElapsed / resetPeriod * (maxRate - minRate)
     return Math.min(maxRate, rateIncrease + baseRate)
+  }
+
+  const onInputChange = ({ target: { value } }) => {
+    setInputvalue(value)
+    setOutputValue(value * exchangeRate)
+  }
+  const onOutputChange = ({ target: { value } }) => {
+    setOutputValue(value)
+    setInputvalue(value / exchangeRate)
   }
 
   useEffect(() => {
@@ -159,7 +160,6 @@ const Burn = () => {
     setClient(apis({ web3, address }))
     apis({ web3, address })
   }, [web3, address])
-
   useEffect(() => {
     if (!client) {
       return
@@ -178,10 +178,31 @@ const Burn = () => {
     if (!decimals) {
       return
     }
-    client.getExchangedAmount().then(a => {
-      setExchangedAmount(new BN(a).div(new BN(10).pow(decimals)).toNumber())
+    client.getExchangedAmount({ decimals }).then(a => {
+      setExchangedAmount(a)
     })
   }, [parameters?.stablecoin?.decimals])
+
+  useEffect(() => {
+    if (!assetAddress || !client) {
+      return
+    }
+    client.getERC20Balance({ assetAddress }).then(({ formatted }) => {
+      console.log(assetAddress, formatted)
+      setUserBalanceFormatted(formatted)
+    })
+  }, [assetAddress, client])
+
+  useEffect(() => {
+    if (userBalanceFormatted === null || !inputValue) {
+      return
+    }
+    if (!(parseFloat(inputValue) <= parseFloat(userBalanceFormatted))) {
+      setInputError('amount exceeds your balance')
+    } else {
+      setInputError('')
+    }
+  }, [inputValue, userBalanceFormatted])
 
   return (
     <Container style={{ gap: 24 }}>
@@ -200,7 +221,9 @@ const Burn = () => {
             <Row style={{ gap: 0, position: 'relative' }}>
               <IconImg src={USDC} />
               <LinkWrarpper href='#' onClick={e => e.preventDefault()} style={{ marginLeft: 16, cursor: 'not-allowed' }}>USDC</LinkWrarpper>
-              <Input $margin='8px' style={{ marginLeft: 24 }} value={inputValue} onChange={({ target: { value } }) => setInputvalue(value)} />
+              <Input disabled={!exchangeRate} $margin='8px' style={{ marginLeft: 24, marginRight: 8 }} value={inputValue} onChange={onInputChange} />
+              {!exchangeRate && <TailSpin stroke='grey' width={16} height={16} />}
+              {inputError ? <FloatingText $color='red'>{inputError}</FloatingText> : <></>}
             </Row>
           </Col>
           <Col>
@@ -208,11 +231,13 @@ const Burn = () => {
             <Row style={{ gap: 0 }}>
               <IconImg src={USDS} />
               <BaseText style={{ marginLeft: 16 }}>USDS</BaseText>
-              <Input $margin='8px' style={{ marginLeft: 24 }} value={outputvalue} onChange={({ target: { value } }) => setOutputValue(value)} />
+              <Input disabled={!exchangeRate} $margin='8px' style={{ marginLeft: 24, marginRight: 8 }} value={outputvalue} onChange={onOutputChange} />
+              {!exchangeRate && <TailSpin stroke='grey' width={16} height={16} />}
             </Row>
           </Col>
           <Row style={{ justifyContent: 'center' }}>
-            <SmallText style={{ color: 'grey' }}>current rate: 1.0 1USDC ≈ {exchangeRate} USDS </SmallText>
+            <SmallText style={{ color: 'grey' }}>current rate:</SmallText>
+            {exchangeRate ? <SmallText style={{ color: 'grey' }}>1.0 1USDC ≈ {exchangeRate} USDS</SmallText> : <TailSpin stroke='grey' width={16} height={16} />}
           </Row>
           <Row style={{ justifyContent: 'center' }}>
             <Button onClick={exchange}>BURN</Button>
@@ -220,8 +245,8 @@ const Burn = () => {
         </FlexColumn>}
       {!address && <Button onClick={connect} style={{ width: 'auto' }}>CONNECT METAMASK</Button>}
       {!parameters.initializing &&
-        <DescLeft>
-          <Title>Data Dashboard</Title>
+        <DescLeft style={{ margin: '0 auto', width: 'auto' }}>
+          <Title>Technical Data</Title>
           <Row>
             <Label>current minimum rate</Label>
             <BaseText>{parameters.minRate}</BaseText>
@@ -237,17 +262,20 @@ const Burn = () => {
             <BaseText>{parameters.perUserLimitAmount} USDS</BaseText>
           </Row>
           <Row>
-            <Label>rate resets after exchanging</Label>
-            <BaseText>{parameters.resetThreshold} USDS</BaseText>
+            <Label>rate resets threshold</Label>
+            <BaseText>{parameters.resetThresholdAmount} USDS</BaseText>
           </Row>
-          <Label>estimated exchange rates</Label>
           <Row>
-            <Label>in 30m</Label>
+            <Label>estimated exchange rate in 30m</Label>
             <BaseText>{estimateRate(60 * 1000 * 30)}</BaseText>
+          </Row>
+          <Row>
             <Label>in 1h</Label>
             <BaseText>{estimateRate(60 * 1000 * 60)}</BaseText>
             <Label>in 2h</Label>
             <BaseText>{estimateRate(60 * 1000 * 120)}</BaseText>
+            <Label>in 3h</Label>
+            <BaseText>{estimateRate(60 * 1000 * 180)}</BaseText>
           </Row>
         </DescLeft>}
       <DescLeft>
