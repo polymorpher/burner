@@ -172,16 +172,21 @@ const Debug = () => {
           <BaseText>Treasury: {parameters?.stablecoinHolder}</BaseText>
         </Desc>}
       {!address && <Button onClick={connect} style={{ width: 'auto' }}>CONNECT METAMASK</Button>}
-      {address &&
+      {address && config.debug &&
         <Desc>
           <BaseText>get fake USDC</BaseText>
           <Input $margin='16px' value={fakeUSDCInputValue} onChange={onFakeUSDCInputChange} />
           <Button onClick={getFakeAsset} style={{ width: 'auto' }}>GET FAKE USDC</Button>
         </Desc>}
-      {address &&
+      {address && config.debug &&
         <Desc>
           <BaseText>You have {usdcBalanceFormatted} Fake USDC (FUSDC)</BaseText>
           <BaseText>You have {usdsBalanceFormatted} Fake USDS (FUSDS)</BaseText>
+        </Desc>}
+      {address && !config.debug &&
+        <Desc>
+          <BaseText>You have {usdcBalanceFormatted} 1USDC</BaseText>
+          <BaseText>You have {usdsBalanceFormatted} USDS</BaseText>
         </Desc>}
     </Container>
   )
