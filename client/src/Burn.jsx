@@ -164,7 +164,7 @@ const Burn = () => {
     const { resetPeriod, minRate, maxRate, baseRate, lastResetTimestamp } = parameters
     const timeElapsedSinceLastReset = Date.now() - lastResetTimestamp
     const rateIncrease = (timeElapsedSinceLastReset + timeElapsed) / resetPeriod * (maxRate - minRate)
-    return Math.min(maxRate, rateIncrease + baseRate)
+    return Math.min(maxRate, rateIncrease + baseRate).toFixed(5)
   }
 
   const onInputChange = ({ target: { value } }) => {
@@ -315,11 +315,11 @@ const Burn = () => {
             <BaseText>{estimateRate(60 * 1000 * 180)}</BaseText>
           </Row>
           <Row>
-            <Label>burner contract address</Label>
+            <Label>burner contract</Label>
             <BaseText><LinkWrarpper href={`https://explorer.harmony.one/address/${config.burnerContract}`} target='_blank'>{config.burnerContract}</LinkWrarpper></BaseText>
           </Row>
           <Row>
-            <Label>stablecoin recovery fund address</Label>
+            <Label>recovery fund</Label>
             <BaseText><LinkWrarpper href={`https://explorer.harmony.one/address/${parameters.stablecoin.address}`} target='_blank'>{parameters.stablecoin.address}</LinkWrarpper></BaseText>
           </Row>
         </DescLeft>}

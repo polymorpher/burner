@@ -2,12 +2,12 @@ const debug = process.env.DEBUG
 
 const config = {
   debug,
-  burnerContract: process.env.BURNER_CONTRACT || (debug ? '0xA6d556Ad54F208c10c147D50c463e0C4e3aE4016' : ''),
+  burnerContract: process.env.BURNER_CONTRACT || (debug ? '0x9BC52FBcCcde8cEADAEde51a25dBeD489b201e53' : '0x476e14D956dca898C33262aecC81407242f8431A'),
   explorer: process.env.EXPLORER_URL || 'https://explorer.harmony.one/#/tx/{{txId}}',
   supportedAssets: process.env.SUPPORTED_ASSETS
     ? JSON.parse(process.env.SUPPORTED_ASSETS)
     : [
-        '0xc8C3562FF714c110298E1772a7A12e12ecF02a92',
+        debug ? '0xe3BCFeeE8a783F1c107C71385652dC2Ac0662598' : '0x985458E523dB3d53125813eD68c274899e9DfAb4',
       ],
   chainParameters: process.env.CHAIN_PARAMETERS
     ? JSON.parse(process.env.CHAIN_PARAMETERS)
