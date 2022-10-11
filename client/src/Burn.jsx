@@ -46,6 +46,8 @@ const Burn = () => {
   const [exchangedAmount, setExchangedAmount] = useState(0)
   const [userBalanceFormatted, setUserBalanceFormatted] = useState(null)
   const [assetSymbol, setAssetSymbol] = useState(null)
+  const [updatingExchangeRate, setUpdatingExchangeRate] = useState(false)
+  const [burning, setBurning] = useState(false)
 
   // console.log(parameters)
 
@@ -123,6 +125,7 @@ const Burn = () => {
       return toast.error('You do not have sufficient asset to burn. Please adjust the amount')
     }
     try {
+      setBurning(true)
       const approvalTx = await client.approve({
         assetAddress,
         burnAmountFormatted,
@@ -131,7 +134,7 @@ const Burn = () => {
       if (!approvalTx) {
         return
       }
-      return client.exchange({
+      await client.exchange({
         assetAddress,
         burnAmountFormatted,
         minExchangeRate: parameters.minExchangeRate,
@@ -153,11 +156,14 @@ const Burn = () => {
     } catch (ex) {
       console.error(ex)
       toast.error(`Unexpected error: ${ex.toString()}`)
+    } finally {
+      setBurning(false)
     }
   }
   const estimateRate = (timeElapsed) => {
-    const { resetPeriod, minRate, maxRate, baseRate } = parameters
-    const rateIncrease = timeElapsed / resetPeriod * (maxRate - minRate)
+    const { resetPeriod, minRate, maxRate, baseRate, lastResetTimestamp } = parameters
+    const timeElapsedSinceLastReset = Date.now() - lastResetTimestamp
+    const rateIncrease = (timeElapsedSinceLastReset + timeElapsed) / resetPeriod * (maxRate - minRate)
     return Math.min(maxRate, rateIncrease + baseRate)
   }
 
@@ -184,12 +190,23 @@ const Burn = () => {
     }
     client.getAllParameters().then(p => setParameters(p))
     client.checkIsAllowed().then(e => setCanExchange(e))
-    const refresh = () => client.getCurrentExchangeRate().then(r => setExchangeRate(r))
+    const refresh = async () => {
+      setUpdatingExchangeRate(true)
+      await client.getCurrentExchangeRate().then(r => setExchangeRate(r))
+      setUpdatingExchangeRate(false)
+    }
     const handle = setInterval(refresh, 5000)
     return () => {
       clearInterval(handle)
     }
   }, [client])
+
+  useEffect(() => {
+    if (!inputValue) {
+      return
+    }
+    setOutputValue(inputValue * exchangeRate)
+  }, [exchangeRate])
 
   useEffect(() => {
     const decimals = parameters?.stablecoin?.decimals
@@ -257,10 +274,10 @@ const Burn = () => {
           </Col>
           <Row style={{ justifyContent: 'center' }}>
             <SmallText style={{ color: 'grey' }}>current rate:</SmallText>
-            {exchangeRate ? <SmallText style={{ color: 'grey' }}>1.0 1USDC ≈ {exchangeRate} USDS</SmallText> : <TailSpin stroke='grey' width={16} height={16} />}
+            {(exchangeRate || !updatingExchangeRate) ? <SmallText style={{ color: 'grey' }}>1.0 1USDC ≈ {exchangeRate} USDS</SmallText> : <TailSpin stroke='grey' width={16} height={16} />}
           </Row>
           <Row style={{ justifyContent: 'center' }}>
-            <Button onClick={exchange} disabled={inputError || !exchangeRate || inputValue === 0}>BURN</Button>
+            <Button onClick={exchange} disabled={burning || inputError || !exchangeRate || inputValue === 0}>BURN</Button>
           </Row>
         </FlexColumn>}
       {!address && <Button onClick={connect} style={{ width: 'auto' }}>CONNECT METAMASK</Button>}
@@ -297,6 +314,14 @@ const Burn = () => {
             <Label>in 3h</Label>
             <BaseText>{estimateRate(60 * 1000 * 180)}</BaseText>
           </Row>
+          <Row>
+            <Label>burner contract address</Label>
+            <BaseText><LinkWrarpper href={`https://explorer.harmony.one/address/${config.burnerContract}`} target='_blank'>{config.burnerContract}</LinkWrarpper></BaseText>
+          </Row>
+          <Row>
+            <Label>stablecoin recovery fund address</Label>
+            <BaseText><LinkWrarpper href={`https://explorer.harmony.one/address/${parameters.stablecoin.address}`} target='_blank'>{parameters.stablecoin.address}</LinkWrarpper></BaseText>
+          </Row>
         </DescLeft>}
       <DescLeft>
         <Title>FAQ</Title>
@@ -305,7 +330,7 @@ const Burn = () => {
           <BaseText>A: In the next round (end of Oct 2022) we will add more token types</BaseText>
         </QA>
         <QA>
-          <BaseText>Q: How is the ratio determined?</BaseText>
+          <BaseText>Q: How is the rate determined?</BaseText>
           <BaseText>A: It is dynamically computed based on how much and how often other people are making the exchanges. There is a minimum and a maximum rate, updated by us every two weeks. Within this range, the rate automatically decreases when some tokens get burned, and automatically resets to minimum when a threshold is reached. The rate also automatically goes up over time until it reaches the maximum. If you are not happy for the rate right now, you could wait for rate to go up later, but there is a bi-weekly limit of USDS available for exchange, so it is possible that all available USDS will be gone before you can get a rate that you want, and you would have to wait for the next bi-weekly round. For more information, checkout our <LinkWrarpper href='https://github.com/polymorpher/burner' target='_blank'> GitHub </LinkWrarpper> </BaseText>
         </QA>
         <QA>
