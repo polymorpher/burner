@@ -320,7 +320,7 @@ const Burn = () => {
           </Row>
           <Row>
             <Label>recovery fund</Label>
-            <BaseText><LinkWrarpper href={`https://explorer.harmony.one/address/${parameters.stablecoin.address}`} target='_blank'>{parameters.stablecoin.address}</LinkWrarpper></BaseText>
+            <BaseText><LinkWrarpper href={`https://explorer.harmony.one/address/${parameters.stablecoinHolder}`} target='_blank'>{parameters.stablecoinHolder}</LinkWrarpper></BaseText>
           </Row>
         </DescLeft>}
       <DescLeft>
