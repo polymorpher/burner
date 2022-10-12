@@ -4,6 +4,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
+interface IERC20Burnable is IERC20 {
+    function burnFrom(address account, uint256 amount) external;
+}
+
 // This contract was developed using `RemBurner` by @brucdarc as a guideline
 // See https://github.com/brucdarc/burn-mechanism/blob/83af811e6a31c721d59284735eca939dba23525d/contracts/Remburner.sol
 // `RemBurner` was licensed under GPL-3.0
@@ -122,7 +126,7 @@ contract Burner is Pausable, Ownable {
         require(exchangedAmounts[msg.sender] + totalAmountExchanged <= perUserLimitAmount, "over user limit");
         updateRate(totalAmountExchanged);
         exchangedAmounts[msg.sender] += totalAmountExchanged;
-        IERC20(_asset).transferFrom(msg.sender, address(0xdead), _burnAmount);
+        IERC20Burnable(_asset).burnFrom(msg.sender, _burnAmount);
         IERC20(stablecoin).transferFrom(stablecoinHolder, msg.sender, totalAmountExchanged);
         emit Burned(msg.sender, _asset, stablecoin, _burnAmount, totalAmountExchanged);
     }
