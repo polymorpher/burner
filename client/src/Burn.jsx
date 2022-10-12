@@ -44,7 +44,9 @@ const Burn = () => {
   const [assetAddress] = useState(config.supportedAssets[0])
   const [canExchange, setCanExchange] = useState(false)
   const [exchangedAmount, setExchangedAmount] = useState(0)
-  const [userBalanceFormatted, setUserBalanceFormatted] = useState(null)
+  const [userBalanceFormatted, setUserBalanceFormatted] = useState(0)
+  const [userStablecoinBalanceFormatted, setUserStablecoinBalanceFormatted] = useState(0)
+  const [treasuryBalanceFormatted, setTreasuryBalanceFormatted] = useState(0)
   const [assetSymbol, setAssetSymbol] = useState(null)
   const [updatingExchangeRate, setUpdatingExchangeRate] = useState(false)
   const [burning, setBurning] = useState(false)
@@ -223,7 +225,7 @@ const Burn = () => {
       return
     }
     client.getERC20Balance({ assetAddress }).then(({ formatted, symbol }) => {
-      console.log(assetAddress, formatted)
+      // console.log(assetAddress, formatted)
       setUserBalanceFormatted(formatted)
       setAssetSymbol(symbol)
     })
@@ -240,6 +242,13 @@ const Burn = () => {
     }
   }, [inputValue, userBalanceFormatted])
 
+  useEffect(() => {
+    if (!parameters?.stablecoinHolder || !parameters?.stablecoin?.address) {
+      return
+    }
+    client.getERC20Balance({ assetAddress: parameters.stablecoin.address }).then(({ formatted }) => setUserStablecoinBalanceFormatted(formatted))
+    client.getERC20Balance({ assetAddress: parameters.stablecoin.address, from: parameters.stablecoinHolder }).then(({ formatted }) => setTreasuryBalanceFormatted(formatted))
+  }, [parameters?.stablecoin?.address, parameters?.stablecoinHolder])
   return (
     <Container style={{ gap: 24 }}>
       <Col style={{ alignItems: 'center' }}>
@@ -321,6 +330,16 @@ const Burn = () => {
           <Row>
             <Label>recovery fund</Label>
             <BaseText><LinkWrarpper href={`https://explorer.harmony.one/address/${parameters.stablecoinHolder}`} target='_blank'>{parameters.stablecoinHolder}</LinkWrarpper></BaseText>
+          </Row>
+          <Row>
+            <Label>recovery fund balance</Label>
+            <BaseText>{treasuryBalanceFormatted.toFixed(2)} USDS</BaseText>
+          </Row>
+          <Row>
+            <Label>your balance</Label>
+            <BaseText>{userStablecoinBalanceFormatted.toFixed(2)} USDS</BaseText>
+            <Label>/</Label>
+            <BaseText>{userBalanceFormatted.toFixed(2)} {assetSymbol}</BaseText>
           </Row>
         </DescLeft>}
       <DescLeft>

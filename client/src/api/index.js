@@ -79,10 +79,10 @@ const apis = ({ web3, address }) => {
       return new BN(amount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
     },
 
-    getERC20Balance: async ({ assetAddress }) => {
+    getERC20Balance: async ({ assetAddress, from = address }) => {
       const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
       const tokenContract = new Contract(IERC20, assetAddress)
-      const balance = await tokenContract.methods.balanceOf(address).call()
+      const balance = await tokenContract.methods.balanceOf(from).call()
       const decimals = await tokenMetadata.methods.decimals().call()
       const symbol = await tokenMetadata.methods.symbol().call()
       const formatted = new BN(balance).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
