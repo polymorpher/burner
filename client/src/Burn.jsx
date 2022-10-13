@@ -324,8 +324,10 @@ const Burn = () => {
             <BaseText>{estimateRate(60 * 1000 * 180)}</BaseText>
           </Row>
           <Row>
-            <Label>burner contract</Label>
-            <BaseText><LinkWrarpper href={`https://explorer.harmony.one/address/${config.burnerContract}`} target='_blank'>{config.burnerContract}</LinkWrarpper></BaseText>
+            <Label>your balance</Label>
+            <BaseText>{userStablecoinBalanceFormatted.toFixed(2)} USDS</BaseText>
+            <Label>/</Label>
+            <BaseText>{userBalanceFormatted.toFixed(2)} {assetSymbol}</BaseText>
           </Row>
           <Row>
             <Label>recovery fund</Label>
@@ -336,11 +338,20 @@ const Burn = () => {
             <BaseText>{treasuryBalanceFormatted.toFixed(2)} USDS</BaseText>
           </Row>
           <Row>
-            <Label>your balance</Label>
-            <BaseText>{userStablecoinBalanceFormatted.toFixed(2)} USDS</BaseText>
-            <Label>/</Label>
-            <BaseText>{userBalanceFormatted.toFixed(2)} {assetSymbol}</BaseText>
+            <Label>burner contract</Label>
+            <BaseText><LinkWrarpper href={`https://explorer.harmony.one/address/${config.burnerContract}`} target='_blank'>{config.burnerContract}</LinkWrarpper></BaseText>
           </Row>
+          {config.previousBurnerContracts?.length > 0 &&
+            <Row>
+              <Label>previous burner contracts</Label>
+            </Row>}
+          {config.previousBurnerContracts.map(c => {
+            return (
+              <Row key={c}>
+                <BaseText><LinkWrarpper href={`https://explorer.harmony.one/address/${c}`} target='_blank'>{c}</LinkWrarpper></BaseText>
+              </Row>
+            )
+          })}
         </DescLeft>}
       <DescLeft>
         <Title>FAQ</Title>
