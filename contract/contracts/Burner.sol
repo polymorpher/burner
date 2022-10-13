@@ -116,7 +116,7 @@ contract Burner is Pausable, Ownable {
     // @param _asset the ERC20 token contract address, must be under permitted list of ERC20 tokens
     // @param _burnAmount the amount of ERC20 token the user wants to burn in exchange for stablecoin
     // @param _minExchangeRate the lowest exchange rate the user would accept to proceed with burning and exchanging
-    function exchange(address _asset, uint256 _burnAmount, uint256 _minExchangeRate) external onlyAllowedAddresses onlyWhenActive {
+    function exchange(address _asset, uint256 _burnAmount, uint256 _minExchangeRate) external onlyAllowedAddresses onlyWhenActive whenNotPaused {
         uint256 valueRate = tokenValueRate[_asset];
         require(valueRate > 0, "unsupported asset");
         uint256 currentExchangeRate = getCurrentExchangeRate();
