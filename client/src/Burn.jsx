@@ -139,7 +139,7 @@ const Burn = () => {
       await client.exchange({
         assetAddress,
         burnAmountFormatted,
-        minExchangeRate: parameters.minExchangeRate,
+        minExchangeRate: exchangeRate,
         stablecoinDecimals: parameters.stablecoin.decimals,
         onFailed: (ex) => {
           toast.error(`Failed to burn. Error: ${ex.toString()}`)
