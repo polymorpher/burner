@@ -3,7 +3,7 @@ const path = require('path')
 const webpack = require('webpack')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-// const CopyWebpackPlugin = require('copy-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 const Dotenv = require('dotenv-webpack')
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
 
@@ -130,12 +130,12 @@ module.exports = {
       environment: process.env.NODE_ENV,
       hash: true
     }),
-    // new CopyWebpackPlugin({
-    //   patterns: [
-    //     { from: 'assets/flags', to: 'flags' }
-    //   ],
-    //   options: { concurrency: 50 },
-    // }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'stats', to: 'stats' }
+      ],
+      options: { concurrency: 50 },
+    }),
     new webpack.ProvidePlugin({
       process: 'process/browser',
     }),

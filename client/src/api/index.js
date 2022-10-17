@@ -5,6 +5,7 @@ import IFakeAsset from '../../assets/abi/IFakeAsset.json'
 import Contract from 'web3-eth-contract'
 import BN from 'bn.js'
 import config from '../../config'
+import axios from 'axios'
 const PRECISION_FACTOR = new BN(10).pow(new BN(18))
 const CLIENT_PRECISION = 1e+6
 const apis = ({ web3, address }) => {
@@ -203,3 +204,13 @@ if (window) {
   window.apis = apis
 }
 export default apis
+
+export async function getStats () {
+  try {
+    const { data } = await axios.get('/stats/stats.json')
+    return data
+  } catch (ex) {
+    console.error(ex)
+    return {}
+  }
+}

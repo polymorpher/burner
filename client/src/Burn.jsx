@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react'
 import Web3 from 'web3'
 import detectEthereumProvider from '@metamask/detect-provider'
 import config from '../config'
-import { Button, FloatingSwitch, FloatingText, Input, LinkWrarpper } from './components/Controls'
+import { Button, FloatingText, Input, LinkWrarpper } from './components/Controls'
 import { BaseText, Desc, DescLeft, SmallText, Title } from './components/Text'
 import { Col, FlexColumn, FlexRow, Main, Row } from './components/Layout'
 import styled from 'styled-components'
 import USDC from '../assets/tokens/usdc.svg'
 import USDS from '../assets/tokens/usds.png'
 import { toast } from 'react-toastify'
-import apis from './api'
+import apis, { getStats } from './api'
 import { TailSpin } from 'react-loading-icons'
 
 const IconImg = styled.img`
@@ -50,6 +50,7 @@ const Burn = () => {
   const [assetSymbol, setAssetSymbol] = useState(null)
   const [updatingExchangeRate, setUpdatingExchangeRate] = useState(false)
   const [burning, setBurning] = useState(false)
+  const [stats, setStats] = useState({})
 
   // console.log(parameters)
 
@@ -180,6 +181,7 @@ const Burn = () => {
 
   useEffect(() => {
     init()
+    getStats().then(s => setStats(s))
   }, [])
 
   useEffect(() => {
@@ -290,6 +292,26 @@ const Burn = () => {
           </Row>
         </FlexColumn>}
       {!address && <Button onClick={connect} style={{ width: 'auto' }}>CONNECT METAMASK</Button>}
+      {stats.totalBurned &&
+        <Desc>
+          <Title>Statistics</Title>
+          <Row style={{ flexWrap: 'wrap' }}>
+            <Label>total burned</Label>
+            {Object.entries(stats.totalBurned).map(([symbol, amountFormatted]) => {
+              return <React.Fragment key={symbol}><BaseText>{amountFormatted}</BaseText> <Label>{symbol}</Label></React.Fragment>
+            })}
+          </Row>
+          <Row>
+            <Label>total disbursed</Label>
+            {Object.entries(stats.totalStablecoinDisbursed).map(([symbol, amountFormatted]) => {
+              return <React.Fragment key={symbol}><BaseText>{amountFormatted}</BaseText> <Label>{symbol}</Label></React.Fragment>
+            })}
+          </Row>
+          <Row>
+            <Label>last update time</Label>
+            <BaseText>{new Date(stats.time * 1000).toLocaleString()}</BaseText>
+          </Row>
+        </Desc>}
       {!parameters.initializing &&
         <DescLeft style={{ margin: '0 auto', width: 'auto' }}>
           <Title>Technical Data</Title>

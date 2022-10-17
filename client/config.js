@@ -3,7 +3,7 @@ const debug = process.env.DEBUG
 const config = {
   debug,
   burnerContract: process.env.BURNER_CONTRACT || (debug ? '0x9BC52FBcCcde8cEADAEde51a25dBeD489b201e53' : '0x476e14D956dca898C33262aecC81407242f8431A'),
-  previousBurnerContracts: JSON.parse(process.env.PREVIOUS_BURNER_CONTRACTS || '[]') ,
+  previousBurnerContracts: JSON.parse(process.env.PREVIOUS_BURNER_CONTRACTS || '[]'),
   explorer: process.env.EXPLORER_URL || 'https://explorer.harmony.one/#/tx/{{txId}}',
   supportedAssets: process.env.SUPPORTED_ASSETS
     ? JSON.parse(process.env.SUPPORTED_ASSETS)
@@ -24,5 +24,5 @@ const config = {
         blockExplorerUrls: ['https://explorer.harmony.one/']
       }
 }
-console.log(config)
+
 export default config
