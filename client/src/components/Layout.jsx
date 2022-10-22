@@ -55,6 +55,7 @@ const ModalBody = styled(FlexColumn)`
   height: auto;
   background: white;
   color: black;
+  overflow: auto;
 `
 
 export const Modal = ({ style, shadowStyle, children, zIndex, visible, onCancel }) => {

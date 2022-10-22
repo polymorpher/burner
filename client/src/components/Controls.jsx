@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import {SmallText} from "./Text";
+import { SmallText } from './Text'
 
 export const Button = styled.button`
   font-family: 'DecimaMono', system-ui;
