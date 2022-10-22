@@ -208,9 +208,10 @@ const Burn = () => {
     const h = setInterval(() => {
       refreshStats()
     }, 10000)
-    return () => {
-      clearInterval(h)
-    }
+    // return () => {
+    //   console.log('cleanup')
+    //   clearInterval(h)
+    // }
   }, [client, stats?.totalBurned])
 
   useEffect(() => {
