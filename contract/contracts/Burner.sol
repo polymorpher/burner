@@ -37,6 +37,9 @@ contract Burner is Pausable, Ownable {
     uint256 public perUserLimitAmount; // maximum number of stablecoins (in fractional-units) that a user may get
     mapping(address => uint256) public exchangedAmounts; // the cumulative amount of stablecoins (in fractional-units) each user exchanged so far
 
+    uint256 public totalExchanged;
+    mapping(address => uint256) public totalBurned;
+
     modifier onlyAllowedAddresses() {
         require(!useAllowList || allowList[msg.sender], "not on list");
         _;
@@ -53,7 +56,6 @@ contract Burner is Pausable, Ownable {
             tokenValueRate[tokenAddresses[i]] = exchangeRates[i];
         }
     }
-
 
 
     function pause() external onlyOwner {
@@ -126,6 +128,8 @@ contract Burner is Pausable, Ownable {
         require(exchangedAmounts[msg.sender] + totalAmountExchanged <= perUserLimitAmount, "over user limit");
         updateRate(totalAmountExchanged);
         exchangedAmounts[msg.sender] += totalAmountExchanged;
+        totalBurned[_asset] += _burnAmount;
+        totalExchanged += totalAmountExchanged;
         IERC20Burnable(_asset).burnFrom(msg.sender, _burnAmount);
         IERC20(stablecoin).transferFrom(stablecoinHolder, msg.sender, totalAmountExchanged);
         emit Burned(msg.sender, _asset, stablecoin, _burnAmount, totalAmountExchanged);
