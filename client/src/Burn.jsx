@@ -283,10 +283,16 @@ const Burn = () => {
   }, [inputValue, userBalanceFormatted])
 
   useEffect(() => {
-    if (!client?.address || !parameters?.stablecoinHolder || !parameters?.stablecoin?.address) {
+    if (!client?.address || !parameters?.stablecoin?.address) {
       return
     }
     client.getERC20Balance({ assetAddress: parameters.stablecoin.address }).then(({ formatted }) => setUserStablecoinBalanceFormatted(formatted))
+  }, [client, parameters?.stablecoin?.address])
+
+  useEffect(() => {
+    if (!client || !parameters?.stablecoinHolder || !parameters?.stablecoin?.address) {
+      return
+    }
     client.getERC20Balance({ assetAddress: parameters.stablecoin.address, from: parameters.stablecoinHolder }).then(({ formatted }) => setTreasuryBalanceFormatted(formatted))
   }, [client, parameters?.stablecoin?.address, parameters?.stablecoinHolder])
   return (
