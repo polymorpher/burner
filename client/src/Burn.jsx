@@ -33,7 +33,7 @@ const Label = styled(SmallText)`
 `
 
 const Burn = () => {
-  const [web3, setWeb3] = useState(new Web3())
+  const [web3, setWeb3] = useState(new Web3(config.defaultRPC))
   const [provider, setProvider] = useState()
   const [address, setAddress] = useState()
   const [inputValue, setInputvalue] = useState(0)
