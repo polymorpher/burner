@@ -9,12 +9,27 @@ import axios from 'axios'
 const PRECISION_FACTOR = new BN(10).pow(new BN(18))
 const CLIENT_PRECISION = 1e+6
 const apis = ({ web3, address }) => {
-  if (!web3 || !address) {
+  if (!web3) {
     return
   }
   Contract.setProvider(web3.currentProvider)
   const burnerContract = new Contract(Burner, config.burnerContract)
   return {
+    address,
+    getTotalBurned: async ({ assetAddress }) => {
+      const totalBurned = await burnerContract.methods.totalBurned(assetAddress).call()
+      const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
+      const symbol = await tokenMetadata.methods.symbol().call()
+      return { [symbol]: new BN(totalBurned).muln(CLIENT_PRECISION).div(PRECISION_FACTOR).toNumber() / CLIENT_PRECISION }
+    },
+    getTotalExchanged: async () => {
+      const totalExchanged = await burnerContract.methods.totalExchanged().call()
+      const stablecoin = await burnerContract.methods.stablecoin().call()
+      const tokenMetadata = new Contract(IERC20Metadata, stablecoin)
+      const symbol = await tokenMetadata.methods.symbol().call()
+      const decimals = await tokenMetadata.methods.decimals().call()
+      return { [symbol]: new BN(totalExchanged).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION }
+    },
     getCurrentExchangeRate: async () => {
       const rate = await burnerContract.methods.getCurrentExchangeRate().call()
       return new BN(rate).muln(CLIENT_PRECISION).div(PRECISION_FACTOR).toNumber() / CLIENT_PRECISION
@@ -205,7 +220,7 @@ if (window) {
 }
 export default apis
 
-export async function getStats () {
+export async function getBaseStats () {
   try {
     const { data } = await axios.get('/stats/stats.json')
     return data
