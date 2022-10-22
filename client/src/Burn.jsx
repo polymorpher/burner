@@ -192,7 +192,7 @@ const Burn = () => {
     }
     async function refreshStats () {
       const baseStats = await getBaseStats()
-      const newStats = { totalBurned: { ...baseStats.totalBurned }, totalStablecoinDisbursed: { ...baseStats.totalStablecoinDisbursed }, time: baseStats.time }
+      const newStats = { totalBurned: { ...baseStats.totalBurned }, totalStablecoinDisbursed: { ...baseStats.totalStablecoinDisbursed }, time: Math.max(baseStats.time, Math.floor(Date.now() / 1000)) }
       const disbursed = await client.getTotalExchanged()
       const [stablecoinSymbol, stablecoinAmountFormatted] = Object.entries(disbursed)[0]
       newStats.totalStablecoinDisbursed[stablecoinSymbol] = (newStats.totalStablecoinDisbursed[stablecoinSymbol] || 0) + stablecoinAmountFormatted
