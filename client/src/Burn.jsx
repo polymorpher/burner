@@ -55,16 +55,23 @@ const Burn = () => {
   const [agreedTos, setAgreedTos] = useState(Cookies.get('burner-agreed-tos'))
   const [tosVisible, setTosVisible] = useState(false)
 
-  // console.log(parameters)
-
   async function init () {
     const provider = await detectEthereumProvider()
     setProvider(provider)
-    setWeb3(new Web3(provider))
+    const w3 = new Web3(provider)
+    setWeb3(w3)
+    return w3
   }
 
   const connect = async () => {
-    if (!web3) {
+    let w3
+    try {
+      w3 = await init()
+    } catch (ex) {
+      console.error(ex)
+      return
+    }
+    if (!w3) {
       toast.error('Wallet not found')
       return
     }
@@ -83,7 +90,7 @@ const Burn = () => {
           params: [{ chainId: config.chainParameters.chainId }],
         })
         toast.success(`Switched to network: ${config.chainParameters.chainName}`)
-        setClient(apis({ web3, address }))
+        setClient(apis({ web3: w3, address }))
       } catch (ex) {
         console.error(ex)
         if (ex.code !== 4902) {
@@ -181,10 +188,6 @@ const Burn = () => {
     setOutputValue(value)
     setInputvalue(value / exchangeRate)
   }
-
-  useEffect(() => {
-    init()
-  }, [])
 
   useEffect(() => {
     if (stats?.totalBurned || !client) {

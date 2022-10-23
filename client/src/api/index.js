@@ -16,6 +16,7 @@ const apis = ({ web3, address }) => {
   const burnerContract = new Contract(Burner, config.burnerContract)
   return {
     address,
+    web3,
     getTotalBurned: async ({ assetAddress }) => {
       const totalBurned = await burnerContract.methods.totalBurned(assetAddress).call()
       const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
