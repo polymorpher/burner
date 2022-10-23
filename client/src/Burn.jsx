@@ -207,10 +207,12 @@ const Burn = () => {
       const newStats = { totalBurned: { ...baseStats.totalBurned }, totalStablecoinDisbursed: { ...baseStats.totalStablecoinDisbursed }, time: Math.max(baseStats.time, Math.floor(Date.now() / 1000)) }
       const disbursed = await client.getTotalExchanged()
       const [stablecoinSymbol, stablecoinAmountFormatted] = Object.entries(disbursed)[0]
+      console.log({ stablecoinSymbol, stablecoinAmountFormatted })
       newStats.totalStablecoinDisbursed[stablecoinSymbol] = (newStats.totalStablecoinDisbursed[stablecoinSymbol] || 0) + stablecoinAmountFormatted
       for (const a of config.supportedAssets) {
         const burned = await client.getTotalBurned({ assetAddress: a })
         const [symbol, amountFormatted] = Object.entries(burned)[0]
+        console.log({ symbol, amountFormatted })
         newStats.totalBurned[symbol] = (newStats.totalBurned[symbol] || 0) + amountFormatted
       }
       console.log(newStats)
@@ -377,11 +379,12 @@ const Burn = () => {
             <Row style={{ justifyContent: 'center' }}>
               <input
                 type='checkbox' checked={agreedTos} onClick={() => {
-                  if (!agreedTos) {
-                    setTosVisible(true)
-                  } else {
-                    setAgreedTos(false)
-                  }
+                  setAgreedTos(e => !e)
+                  // if (!agreedTos) {
+                  //   setTosVisible(true)
+                  // } else {
+                  //   setAgreedTos(false)
+                  // }
                 }}
               /> <SmallText style={{ color: 'grey' }}>I agree to <LinkWrarpper href='#' onClick={() => setTosVisible(true)}> the terms of services</LinkWrarpper></SmallText>
             </Row>
