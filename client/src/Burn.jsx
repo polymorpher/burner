@@ -58,20 +58,23 @@ const Burn = () => {
   async function init () {
     const provider = await detectEthereumProvider()
     setProvider(provider)
-    const w3 = new Web3(provider)
-    setWeb3(w3)
-    return w3
+    const web3 = new Web3(provider)
+    setWeb3(web3)
+    return { web3, provider }
   }
 
   const connect = async () => {
-    let w3
+    let web3, provider
     try {
-      w3 = await init()
+      const newInit = await init()
+      web3 = newInit.web3
+      provider = newInit.provider
     } catch (ex) {
       console.error(ex)
+      toast.error('Cannot detect wallet')
       return
     }
-    if (!w3) {
+    if (!web3) {
       toast.error('Wallet not found')
       return
     }
@@ -90,7 +93,7 @@ const Burn = () => {
           params: [{ chainId: config.chainParameters.chainId }],
         })
         toast.success(`Switched to network: ${config.chainParameters.chainName}`)
-        setClient(apis({ web3: w3, address }))
+        setClient(apis({ web3, address }))
       } catch (ex) {
         console.error(ex)
         if (ex.code !== 4902) {
@@ -115,6 +118,7 @@ const Burn = () => {
         init()
       })
     } catch (ex) {
+      toast.error('Failed to connect wallet')
       console.error(ex)
     }
   }
