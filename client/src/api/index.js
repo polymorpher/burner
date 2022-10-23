@@ -20,7 +20,8 @@ const apis = ({ web3, address }) => {
       const totalBurned = await burnerContract.methods.totalBurned(assetAddress).call()
       const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
       const symbol = await tokenMetadata.methods.symbol().call()
-      return { [symbol]: new BN(totalBurned).muln(CLIENT_PRECISION).div(PRECISION_FACTOR).toNumber() / CLIENT_PRECISION }
+      const decimals = await tokenMetadata.methods.decimals().call()
+      return { [symbol]: new BN(totalBurned).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION }
     },
     getTotalExchanged: async () => {
       const totalExchanged = await burnerContract.methods.totalExchanged().call()
