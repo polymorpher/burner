@@ -12,6 +12,7 @@ import { toast } from 'react-toastify'
 import apis, { getBaseStats } from './api'
 import { TailSpin } from 'react-loading-icons'
 import Cookies from 'js-cookie'
+import querystring from 'query-string'
 
 const IconImg = styled.img`
   height: 24px;
@@ -306,6 +307,12 @@ const Burn = () => {
     }
     client.getERC20Balance({ assetAddress: parameters.stablecoin.address, from: parameters.stablecoinHolder }).then(({ formatted }) => setTreasuryBalanceFormatted(formatted))
   }, [client, parameters?.stablecoin?.address, parameters?.stablecoinHolder])
+
+  const qs = querystring.parse(location.search)
+  if (!qs?.v) {
+    window.location.href = `${window.location.pathname}?v=` + Date.now()
+  }
+
   return (
     <>
       <Modal visible={tosVisible} style={{ maxWidth: '80%', width: 1200, margin: '0 auto' }}>
