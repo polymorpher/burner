@@ -124,6 +124,10 @@ const Burn = () => {
   }
 
   const exchange = async () => {
+    if (!agreedTos) {
+      setTosVisible(true)
+      return
+    }
     if (!client) {
       return
     }
@@ -375,7 +379,7 @@ const Burn = () => {
               /> <SmallText style={{ color: 'grey' }}>I agree to <LinkWrarpper href='#' onClick={() => setTosVisible(true)}> the terms of services</LinkWrarpper></SmallText>
             </Row>
             <Row style={{ justifyContent: 'center' }}>
-              <Button onClick={exchange} disabled={burning || inputError || !exchangeRate || inputValue === 0 || !agreedTos}>BURN</Button>
+              <Button onClick={exchange} disabled={burning || inputError || !exchangeRate || inputValue === 0}>BURN</Button>
             </Row>
           </FlexColumn>}
         {!address && <Button onClick={connect} style={{ width: 'auto' }}>CONNECT METAMASK</Button>}

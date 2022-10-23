@@ -122,7 +122,7 @@ contract Burner is Pausable, Ownable {
         uint256 valueRate = tokenValueRate[_asset];
         require(valueRate > 0, "unsupported asset");
         uint256 currentExchangeRate = getCurrentExchangeRate();
-        require(currentExchangeRate > _minExchangeRate, "cannot satisfy rate");
+        require(currentExchangeRate >= _minExchangeRate, "cannot satisfy rate");
         uint256 assetValueAmount = _burnAmount * valueRate / PRECISION_FACTOR;
         uint256 totalAmountExchanged = assetValueAmount * currentExchangeRate / PRECISION_FACTOR;
         require(exchangedAmounts[msg.sender] + totalAmountExchanged <= perUserLimitAmount, "over user limit");

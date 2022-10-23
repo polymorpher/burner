@@ -141,7 +141,7 @@ const apis = ({ web3, address }) => {
       }
     },
     exchange: async ({ assetAddress, burnAmountFormatted, minExchangeRate, onFailed, onSubmitted, onSuccess, stablecoinDecimals }) => {
-      minExchangeRate = new BN(minExchangeRate * CLIENT_PRECISION).mul(PRECISION_FACTOR).divn(CLIENT_PRECISION)
+      minExchangeRate = new BN(minExchangeRate * 0.999 * CLIENT_PRECISION).mul(PRECISION_FACTOR).divn(CLIENT_PRECISION)
       const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
       let decimals
       try {
