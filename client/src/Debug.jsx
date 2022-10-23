@@ -100,7 +100,7 @@ const Debug = () => {
 
   useEffect(() => {
     const stablecoin = parameters?.stablecoin?.address
-    if (!client || !stablecoin) {
+    if (!client?.address || !stablecoin) {
       return
     }
     client.getERC20Balance({ assetAddress: stablecoin }).then(({ formatted }) => setUsdsBalanceFormatted(formatted))
