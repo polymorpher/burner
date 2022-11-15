@@ -6,7 +6,7 @@ import { Button, CancelButton, FloatingText, Input, LinkWrarpper } from './compo
 import { BaseText, Desc, DescLeft, SmallText, Title } from './components/Text'
 import { Col, FlexColumn, FlexRow, Main, Modal, Row } from './components/Layout'
 import styled from 'styled-components'
-import USDC from '../assets/tokens/usdc.svg'
+import { MAPPING, ICONS } from '../constants'
 import USDS from '../assets/tokens/usds.png'
 import { toast } from 'react-toastify'
 import apis, { getBaseStats } from './api'
@@ -35,15 +35,20 @@ const Label = styled(SmallText)`
 
 const Burn = () => {
   const [web3, setWeb3] = useState(new Web3(config.defaultRPC))
-  const [provider, setProvider] = useState()
   const [address, setAddress] = useState()
   const [inputValue, setInputvalue] = useState(0)
   const [inputError, setInputError] = useState('')
   const [outputvalue, setOutputValue] = useState(0)
   const [parameters, setParameters] = useState({ initializing: true })
   const [exchangeRate, setExchangeRate] = useState(0)
+  const [assetValueRate, setAssetValueRate] = useState(1)
+  const [assetValueRates, setAssetValueRates] = useState({})
   const [client, setClient] = useState(apis({}))
-  const [assetAddress] = useState(config.supportedAssets[0])
+  const supportedAssets = config.supportedAssets.map(k => ({
+    key: k, label: MAPPING[k], icon: ICONS[k]
+  }))
+  // const [assetAddress, setAssetAddress] = useState(supportedAssets[0].key)
+  const [selectedAsset, setSelectedAsset] = useState(supportedAssets[0])
   const [canExchange, setCanExchange] = useState(false)
   const [exchangedAmount, setExchangedAmount] = useState(0)
   const [userBalanceFormatted, setUserBalanceFormatted] = useState(0)
@@ -55,10 +60,10 @@ const Burn = () => {
   const [stats, setStats] = useState({})
   const [agreedTos, setAgreedTos] = useState(Cookies.get('burner-agreed-tos'))
   const [tosVisible, setTosVisible] = useState(false)
+  const [selectAssetVisible, setSelectAssetVisible] = useState(false)
 
   async function init () {
     const provider = await detectEthereumProvider()
-    setProvider(provider)
     const web3 = new Web3(provider)
     setWeb3(web3)
     return { web3, provider }
@@ -142,14 +147,14 @@ const Burn = () => {
     if (!(exchangedAmount < parameters.perUserLimitAmount)) {
       return toast.error('Your already exceeded the per-user limit')
     }
-    const { formatted: userFormattedBalance } = await client.getERC20Balance({ assetAddress })
+    const { formatted: userFormattedBalance } = await client.getERC20Balance({ assetAddress: selectedAsset.key })
     if (!(userFormattedBalance > burnAmountFormatted)) {
       return toast.error('You do not have sufficient asset to burn. Please adjust the amount')
     }
     try {
       setBurning(true)
       const approvalTx = await client.approve({
-        assetAddress,
+        assetAddress: selectedAsset.key,
         burnAmountFormatted,
         onFailed: ex => toast.error(`Failed to approve burner to act on your behalf. Error: ${ex.toString()}`)
       })
@@ -157,7 +162,7 @@ const Burn = () => {
         return
       }
       await client.exchange({
-        assetAddress,
+        assetAddress: selectedAsset.key,
         burnAmountFormatted,
         minExchangeRate: exchangeRate,
         stablecoinDecimals: parameters.stablecoin.decimals,
@@ -191,11 +196,11 @@ const Burn = () => {
 
   const onInputChange = ({ target: { value } }) => {
     setInputvalue(value)
-    setOutputValue(value * exchangeRate)
+    setOutputValue(value * exchangeRate * assetValueRate)
   }
   const onOutputChange = ({ target: { value } }) => {
     setOutputValue(value)
-    setInputvalue(value / exchangeRate)
+    setInputvalue(value / exchangeRate / assetValueRate)
   }
 
   useEffect(() => {
@@ -275,15 +280,15 @@ const Burn = () => {
   }, [client, parameters?.stablecoin?.decimals])
 
   useEffect(() => {
-    if (!assetAddress || !client || !client?.address) {
+    if (!selectedAsset.key || !client || !client?.address) {
       return
     }
-    client.getERC20Balance({ assetAddress }).then(({ formatted, symbol }) => {
+    client.getERC20Balance({ assetAddress: selectedAsset.key }).then(({ formatted, symbol }) => {
       // console.log(assetAddress, formatted)
       setUserBalanceFormatted(formatted)
       setAssetSymbol(symbol)
     })
-  }, [assetAddress, client])
+  }, [selectedAsset.key, client])
 
   useEffect(() => {
     if (userBalanceFormatted === null || !inputValue) {
@@ -310,11 +315,37 @@ const Burn = () => {
     client.getERC20Balance({ assetAddress: parameters.stablecoin.address, from: parameters.stablecoinHolder }).then(({ formatted }) => setTreasuryBalanceFormatted(formatted))
   }, [client, parameters?.stablecoin?.address, parameters?.stablecoinHolder])
 
+  useEffect(() => {
+    if (!client || !parameters?.stablecoin?.decimals) {
+      return
+    }
+    client.getAssetValueRate({
+      assetAddress: selectedAsset.key,
+      stablecoinDecimals: parameters?.stablecoin?.decimals
+    }).then(rate => setAssetValueRate(rate))
+  }, [client, parameters?.stablecoin?.decimals, selectedAsset?.key])
+
+  useEffect(() => {
+    if (!client || !selectAssetVisible || !parameters?.stablecoin?.decimals) {
+      return
+    }
+    async function f () {
+      const keys = supportedAssets.map(e => e.key)
+      const rates = await Promise.all(keys.map(k => client.getAssetValueRate({
+        assetAddress: k,
+        stablecoinDecimals: parameters?.stablecoin?.decimals
+      })))
+      setAssetValueRates(Object.fromEntries(keys.map((k, i) => [k, rates[i]])))
+    }
+    f()
+  }, [client, selectAssetVisible, parameters?.stablecoin?.decimals])
+
   const qs = querystring.parse(location.search)
   if (!qs?.v) {
     window.location.href = `${window.location.pathname}?v=` + Date.now()
   }
 
+  console.log(assetValueRate)
   return (
     <>
       <Modal visible={tosVisible} style={{ maxWidth: '80%', width: 1200, margin: '0 auto' }}>
@@ -341,6 +372,29 @@ const Burn = () => {
           </Button>
         </Row>
       </Modal>
+      <Modal visible={selectAssetVisible} style={{ maxWidth: '80%', width: 1200, margin: '0 auto' }}>
+        <Title>Choose asset to burn</Title>
+        <BaseText>Each asset's original market value at the time of the hack is marked below</BaseText>
+        <DescLeft>
+          <Row style={{ flexWrap: 'wrap' }}>
+            {supportedAssets.map(({ key, label, icon }) => {
+              return (
+                <div key={key} style={{ display: 'inline-flex', alignItems: 'center', width: 256 }}>
+                  <IconImg src={icon} style={{ width: 24 }} />
+                  <LinkWrarpper
+                    href='#' onClick={e => {
+                      e.preventDefault()
+                      setSelectedAsset({ key, label, icon })
+                      setSelectAssetVisible(false)
+                    }} style={{ marginLeft: 16 }}
+                  >{label} {assetValueRates[key] ? <>(${assetValueRates[key]})</> : <></>}
+                  </LinkWrarpper>
+                </div>
+              )
+            })}
+          </Row>
+        </DescLeft>
+      </Modal>
       <Container style={{ gap: 24 }}>
         <Col style={{ alignItems: 'center' }}>
           <Title style={{ margin: 0 }}>Harmony Recovery Portal</Title>
@@ -356,8 +410,14 @@ const Burn = () => {
             <Col>
               <Label>burn</Label>
               <Row style={{ gap: 0, position: 'relative' }}>
-                <IconImg src={USDC} />
-                <LinkWrarpper href='#' onClick={e => e.preventDefault()} style={{ marginLeft: 16, cursor: 'not-allowed' }}>USDC</LinkWrarpper>
+                <IconImg src={selectedAsset.icon} />
+                <LinkWrarpper
+                  href='#' onClick={e => {
+                    e.preventDefault()
+                    setSelectAssetVisible(true)
+                  }} style={{ marginLeft: 16 }}
+                >{selectedAsset.label}
+                </LinkWrarpper>
                 <Input disabled={!exchangeRate} $margin='8px' style={{ marginLeft: 24, marginRight: 8 }} value={inputValue} onChange={onInputChange} />
                 {!exchangeRate && <TailSpin stroke='grey' width={16} height={16} />}
                 {inputError ? <FloatingText $color='red'>{inputError}</FloatingText> : <></>}
@@ -374,7 +434,7 @@ const Burn = () => {
             </Col>
             <Row style={{ justifyContent: 'center' }}>
               <SmallText style={{ color: 'grey' }}>current rate:</SmallText>
-              {(exchangeRate || !updatingExchangeRate) ? <SmallText style={{ color: 'grey' }}>1.0 1USDC ≈ {exchangeRate} USDS</SmallText> : <TailSpin stroke='grey' width={16} height={16} />}
+              {(exchangeRate || !updatingExchangeRate) ? <SmallText style={{ color: 'grey' }}>1.0 {selectedAsset.label} ≈ {exchangeRate * assetValueRate} USDS</SmallText> : <TailSpin stroke='grey' width={16} height={16} />}
             </Row>
             <Row style={{ justifyContent: 'center' }}>
               <input
@@ -398,14 +458,14 @@ const Burn = () => {
             <Title>Statistics</Title>
             <Row style={{ flexWrap: 'wrap' }}>
               <Label>total burned</Label>
-              {Object.entries(stats.totalBurned).map(([symbol, amountFormatted]) => {
-                return <React.Fragment key={symbol}><BaseText>{amountFormatted}</BaseText> <Label>{symbol}</Label></React.Fragment>
+              {Object.entries(stats.totalBurned).map(([symbol, amountFormatted], i) => {
+                return amountFormatted > 0 ? <React.Fragment key={symbol}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></React.Fragment> : <></>
               })}
             </Row>
             <Row>
               <Label>total disbursed</Label>
               {Object.entries(stats.totalStablecoinDisbursed).map(([symbol, amountFormatted]) => {
-                return <React.Fragment key={symbol}><BaseText>{amountFormatted}</BaseText> <Label>{symbol}</Label></React.Fragment>
+                return <React.Fragment key={symbol}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></React.Fragment>
               })}
             </Row>
             <Row>

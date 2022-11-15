@@ -8,6 +8,7 @@ import config from '../../config'
 import axios from 'axios'
 const PRECISION_FACTOR = new BN(10).pow(new BN(18))
 const CLIENT_PRECISION = 1e+6
+const exp10BN = (decimals) => new BN(10).pow(new BN(decimals))
 const apis = ({ web3, address }) => {
   if (!web3) {
     return
@@ -22,7 +23,7 @@ const apis = ({ web3, address }) => {
       const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
       const symbol = await tokenMetadata.methods.symbol().call()
       const decimals = await tokenMetadata.methods.decimals().call()
-      return { [symbol]: new BN(totalBurned).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION }
+      return { [symbol]: new BN(totalBurned).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION }
     },
     getTotalExchanged: async () => {
       const totalExchanged = await burnerContract.methods.totalExchanged().call()
@@ -30,7 +31,13 @@ const apis = ({ web3, address }) => {
       const tokenMetadata = new Contract(IERC20Metadata, stablecoin)
       const symbol = await tokenMetadata.methods.symbol().call()
       const decimals = await tokenMetadata.methods.decimals().call()
-      return { [symbol]: new BN(totalExchanged).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION }
+      return { [symbol]: new BN(totalExchanged).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION }
+    },
+    getAssetValueRate: async ({ assetAddress, stablecoinDecimals }) => {
+      const rate = await burnerContract.methods.tokenValueRate(assetAddress).call()
+      const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
+      const decimals = await tokenMetadata.methods.decimals().call()
+      return new BN(rate).muln(CLIENT_PRECISION).mul(exp10BN(decimals)).div(exp10BN(stablecoinDecimals)).div(PRECISION_FACTOR).toNumber() / CLIENT_PRECISION
     },
     getCurrentExchangeRate: async () => {
       const rate = await burnerContract.methods.getCurrentExchangeRate().call()
@@ -76,8 +83,8 @@ const apis = ({ web3, address }) => {
           decimals,
         },
         stablecoinHolder,
-        perUserLimitAmount: new BN(perUserLimitAmount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION,
-        resetThresholdAmount: new BN(resetThresholdAmount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION,
+        perUserLimitAmount: new BN(perUserLimitAmount).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION,
+        resetThresholdAmount: new BN(resetThresholdAmount).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION,
         resetPeriod: parseInt(resetPeriod) * 1000,
         isShutdown
       }
@@ -94,7 +101,7 @@ const apis = ({ web3, address }) => {
         return 0
       }
       const amount = await burnerContract.methods.exchangedAmounts(address).call()
-      return new BN(amount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
+      return new BN(amount).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION
     },
 
     getERC20Balance: async ({ assetAddress, from = address }) => {
@@ -103,7 +110,7 @@ const apis = ({ web3, address }) => {
       const balance = await tokenContract.methods.balanceOf(from).call()
       const decimals = await tokenMetadata.methods.decimals().call()
       const symbol = await tokenMetadata.methods.symbol().call()
-      const formatted = new BN(balance).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
+      const formatted = new BN(balance).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION
       return { formatted, balance, decimals, symbol }
     },
 
@@ -113,7 +120,7 @@ const apis = ({ web3, address }) => {
       const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
       const allowance = await tokenContract.methods.allowance(address, config.burnerContract).call()
       const decimals = await tokenMetadata.methods.decimals().call()
-      burnAmountFormatted = new BN(burnAmountFormatted * CLIENT_PRECISION).mul(new BN(10).pow(new BN(decimals))).divn(CLIENT_PRECISION)
+      burnAmountFormatted = new BN(burnAmountFormatted * CLIENT_PRECISION).mul(exp10BN(decimals)).divn(CLIENT_PRECISION)
       console.log(allowance.toString(), burnAmountFormatted.toString())
       if (new BN(allowance).gte(burnAmountFormatted)) {
         return true
@@ -146,7 +153,7 @@ const apis = ({ web3, address }) => {
       let decimals
       try {
         decimals = await tokenMetadata.methods.decimals().call()
-        burnAmountFormatted = new BN(burnAmountFormatted * CLIENT_PRECISION).mul(new BN(10).pow(new BN(decimals))).divn(CLIENT_PRECISION)
+        burnAmountFormatted = new BN(burnAmountFormatted * CLIENT_PRECISION).mul(exp10BN(decimals)).divn(CLIENT_PRECISION)
       } catch (ex) {
         throw new Error(`Cannot read from token contract ${assetAddress}`)
       }
@@ -175,8 +182,8 @@ const apis = ({ web3, address }) => {
           const burnedAmount = burned?.returnValues?.burnedAmount
           onSuccess({
             transactionHash: tx.transactionHash,
-            totalAmountExchanged: new BN(totalAmountExchanged).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(stablecoinDecimals))).toNumber() / CLIENT_PRECISION,
-            burnedAmount: new BN(burnedAmount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
+            totalAmountExchanged: new BN(totalAmountExchanged).muln(CLIENT_PRECISION).div(exp10BN(stablecoinDecimals)).toNumber() / CLIENT_PRECISION,
+            burnedAmount: new BN(burnedAmount).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION
           })
         }
         return tx
@@ -192,7 +199,7 @@ const apis = ({ web3, address }) => {
       const stablecoinContract = new Contract(IERC20, stablecoin)
       const stablecoinMetadata = new Contract(IERC20Metadata, stablecoin)
       const decimals = await stablecoinMetadata.methods.decimals().call()
-      const amount = new BN(amountFormatted * CLIENT_PRECISION).mul(new BN(10).pow(new BN(decimals))).divn(CLIENT_PRECISION)
+      const amount = new BN(amountFormatted * CLIENT_PRECISION).mul(exp10BN(decimals)).divn(CLIENT_PRECISION)
       const tx = await stablecoinContract.methods.approve(config.burnerContract, amount).call({ from: address })
       console.log('test passed', tx)
       return stablecoinContract.methods.approve(config.burnerContract, amount).send({ from: address })
@@ -204,13 +211,13 @@ const apis = ({ web3, address }) => {
       const stablecoinMetadata = new Contract(IERC20Metadata, stablecoin)
       const decimals = await stablecoinMetadata.methods.decimals().call()
       const allowance = await stablecoinContract.methods.allowance(stablecoinHolder, config.burnerContract).call()
-      return new BN(allowance).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(decimals))).toNumber() / CLIENT_PRECISION
+      return new BN(allowance).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION
     },
     _getFakeAsset: async ({ assetAddress, amountFormatted }) => {
       const fakeAssetContract = new Contract(IFakeAsset, assetAddress)
       const fakeAssetMetadata = new Contract(IERC20Metadata, assetAddress)
       const decimals = await fakeAssetMetadata.methods.decimals().call()
-      const amount = new BN(amountFormatted * CLIENT_PRECISION).mul(new BN(10).pow(new BN(decimals))).divn(CLIENT_PRECISION)
+      const amount = new BN(amountFormatted * CLIENT_PRECISION).mul(exp10BN(decimals)).divn(CLIENT_PRECISION)
       const tx = await fakeAssetContract.methods.mint(address, amount).call()
       console.log('test passed', tx)
       return fakeAssetContract.methods.mint(address, amount).send({ from: address })

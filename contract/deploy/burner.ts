@@ -5,17 +5,37 @@ import BN from 'bn.js'
 const PRECISION_FACTOR = new BN(10).pow(new BN(18))
 const PARAMETER_PRECISION = 1e+6
 
+const getMeta = async (address) => {
+  const tokenMetadata = await ethers.getContractAt('IERC20Metadata', address)
+  const symbol = await tokenMetadata.symbol()
+  const decimals = await tokenMetadata.decimals()
+  return { symbol, decimals }
+}
+
+const exp10BN = n => new BN(10).pow(new BN(n))
 const f = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments: { deploy }, getNamedAccounts } = hre
   const { deployer } = await getNamedAccounts()
+  const { decimals: stableDecimals } = await getMeta(config.stablecoinAddress)
+  const tokenValueAmounts: string[] = []
+  const tokenLabels: string[] = [] // for debugging
+  const tokenAddresses: string[] = [] // for debugging
+  for (const [key, value] of Object.entries(config.tokenAssetValue)) {
+    const { decimals, symbol } = await getMeta(key)
+    tokenLabels.push(symbol)
+    tokenAddresses.push(key)
+    // @ts-ignore
+    const amount = new BN(value).mul(PRECISION_FACTOR).div(exp10BN(decimals)).mul(exp10BN(stableDecimals))
+    tokenValueAmounts.push(amount.toString())
+  }
+
   const Burner = await deploy('Burner', {
     from: deployer,
     args: [
       config.stablecoinAddress,
       new BN(config.maxRate * PARAMETER_PRECISION).mul(PRECISION_FACTOR).div(new BN(PARAMETER_PRECISION)).toString(),
-      Object.keys(config.tokenAssetValue),
-      // @ts-ignore
-      Object.values(config.tokenAssetValue).map(e => new BN(e).mul(PRECISION_FACTOR).toString())
+      tokenAddresses,
+      tokenValueAmounts
     ],
     log: true,
     autoMine: true
@@ -50,6 +70,8 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
   const resetThresholdAmount = await burner.resetThresholdAmount()
   const resetPeriod = await burner.resetPeriod()
   const isShutdown = await burner.isShutdown()
+  const tokenValueRates = (await Promise.all(tokenAddresses.map(k => burner.tokenValueRate(k)))).map(e => e.toString())
+
   const displayObj = {
     perUserLimitAmount,
     minRate,
@@ -60,7 +82,8 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
     stablecoinHolder,
     resetThresholdAmount,
     resetPeriod,
-    isShutdown
+    isShutdown,
+    tokenValues: JSON.stringify(Object.fromEntries(tokenAddresses.map((k, i) => [k, tokenValueRates[i]])))
   }
   Object.keys(displayObj).forEach(k => {
     displayObj[k] = displayObj[k].toString()
