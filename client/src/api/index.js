@@ -231,7 +231,7 @@ export default apis
 
 export async function getBaseStats () {
   try {
-    const { data } = await axios.get('/stats/stats.json')
+    const { data } = await axios.get('/stats/stats.json?v' + Date.now())
     return data
   } catch (ex) {
     console.error(ex)
