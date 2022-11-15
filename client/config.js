@@ -6,6 +6,7 @@ const config = {
   previousBurnerContracts: JSON.parse(process.env.PREVIOUS_BURNER_CONTRACTS || '[]'),
   explorer: process.env.EXPLORER_URL || 'https://explorer.harmony.one/#/tx/{{txId}}',
   defaultRPC: process.env.DEFAULT_RPC || 'https://api.harmony.one',
+  disabledAssets: JSON.parse(process.env.DISABLED_ASSETS || '[]'),
   supportedAssets: process.env.SUPPORTED_ASSETS
     ? JSON.parse(process.env.SUPPORTED_ASSETS)
     : [

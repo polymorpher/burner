@@ -378,11 +378,16 @@ const Burn = () => {
         <DescLeft>
           <Row style={{ flexWrap: 'wrap' }}>
             {supportedAssets.map(({ key, label, icon }) => {
+              console.log(key, config.disabledAssets.includes(key))
               return (
                 <div key={key} style={{ display: 'inline-flex', alignItems: 'center', width: 256 }}>
                   <IconImg src={icon} style={{ width: 24 }} />
                   <LinkWrarpper
+                    $disabled={config.disabledAssets.includes(key)}
                     href='#' onClick={e => {
+                      if (config.disabledAssets.includes(key)) {
+                        return
+                      }
                       e.preventDefault()
                       setSelectedAsset({ key, label, icon })
                       setSelectAssetVisible(false)

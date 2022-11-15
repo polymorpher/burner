@@ -59,7 +59,7 @@ async function main () {
     }
 
     const meta = await getMeta(address)
-    newStats.totalBurned[symbol] += new BN(amount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(meta.decimals))).toNumber() / CLIENT_PRECISION
+    newStats.totalBurned[symbol] = (newStats.totalBurned[symbol] || 0) + new BN(amount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(meta.decimals))).toNumber() / CLIENT_PRECISION
   }
   console.log(newStats)
   await fs.writeFile(statsFilename, JSON.stringify(newStats), { encoding: 'utf-8' })

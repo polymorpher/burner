@@ -63,6 +63,12 @@ export const LinkWrarpper = styled.a`
   &:hover{
     color: red;
   }
+  ${props => props.$disabled
+? `
+    color: lightgrey;
+    cursor: not-allowed;
+  `
+: ''}
 `
 
 export const FloatingSwitch = styled(LinkWrarpper)`
