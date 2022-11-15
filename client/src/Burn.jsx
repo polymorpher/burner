@@ -212,15 +212,15 @@ const Burn = () => {
       const newStats = { totalBurned: { ...baseStats.totalBurned }, totalStablecoinDisbursed: { ...baseStats.totalStablecoinDisbursed }, time: Math.max(baseStats.time, Math.floor(Date.now() / 1000)) }
       const disbursed = await client.getTotalExchanged()
       const [stablecoinSymbol, stablecoinAmountFormatted] = Object.entries(disbursed)[0]
-      console.log({ stablecoinSymbol, stablecoinAmountFormatted })
+      // console.log({ stablecoinSymbol, stablecoinAmountFormatted })
       newStats.totalStablecoinDisbursed[stablecoinSymbol] = (newStats.totalStablecoinDisbursed[stablecoinSymbol] || 0) + stablecoinAmountFormatted
       for (const a of config.supportedAssets) {
         const burned = await client.getTotalBurned({ assetAddress: a })
         const [symbol, amountFormatted] = Object.entries(burned)[0]
-        console.log({ symbol, amountFormatted })
+        // console.log({ symbol, amountFormatted })
         newStats.totalBurned[symbol] = (newStats.totalBurned[symbol] || 0) + amountFormatted
       }
-      console.log(newStats)
+      // console.log(newStats)
       setStats(newStats)
     }
     refreshStats()
@@ -378,7 +378,7 @@ const Burn = () => {
         <DescLeft>
           <Row style={{ flexWrap: 'wrap' }}>
             {supportedAssets.map(({ key, label, icon }) => {
-              console.log(key, config.disabledAssets.includes(key))
+              // console.log(key, config.disabledAssets.includes(key))
               return (
                 <div key={key} style={{ display: 'inline-flex', alignItems: 'center', width: 256 }}>
                   <IconImg src={icon} style={{ width: 24 }} />
