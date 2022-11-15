@@ -263,7 +263,7 @@ const Burn = () => {
     if (!inputValue) {
       return
     }
-    setOutputValue(inputValue * exchangeRate)
+    setOutputValue(inputValue * exchangeRate * assetValueRate)
   }, [exchangeRate])
 
   useEffect(() => {
