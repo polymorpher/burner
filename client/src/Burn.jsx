@@ -345,7 +345,7 @@ const Burn = () => {
     window.location.href = `${window.location.pathname}?v=` + Date.now()
   }
 
-  console.log(assetValueRate)
+  // console.log(assetValueRate)
   return (
     <>
       <Modal visible={tosVisible} style={{ maxWidth: '80%', width: 1200, margin: '0 auto' }}>
