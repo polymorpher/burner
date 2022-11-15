@@ -402,7 +402,7 @@ const Burn = () => {
           <BaseText style={{ fontSize: 12, color: 'grey', transform: 'translateX(128px)' }}>by <LinkWrarpper href='https://modulo.so' target='_blank' style={{ color: 'grey' }}>modulo.so</LinkWrarpper></BaseText>
         </Col>
         <Desc>
-          <BaseText>Burn depegged tokens such as USDC in exchange for <LinkWrarpper href='https://www.stably.io/post/usds-stablecoin-by-stably-launches-on-harmony/' target='_blank'>USDS</LinkWrarpper></BaseText>
+          <BaseText style={{ fontSize: 14 }}>Burn depegged tokens such as USDC and 1ETH in exchange for <LinkWrarpper href='https://www.stably.io/post/usds-stablecoin-by-stably-launches-on-harmony/' target='_blank'>USDS</LinkWrarpper></BaseText>
         </Desc>
         {address && <BaseText>Your address: {address}</BaseText>}
         {address &&
@@ -456,11 +456,15 @@ const Burn = () => {
         {stats.totalBurned &&
           <Desc>
             <Title>Statistics</Title>
-            <Row style={{ flexWrap: 'wrap' }}>
-              <Label>total burned</Label>
-              {Object.entries(stats.totalBurned).map(([symbol, amountFormatted], i) => {
-                return amountFormatted > 0 ? <React.Fragment key={symbol}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></React.Fragment> : <></>
-              })}
+            <Row style={{ alignItems: 'start' }}>
+              <Label style={{ width: 128 }}>total burned</Label>
+              <Col>
+
+                {Object.entries(stats.totalBurned).map(([symbol, amountFormatted], i) => {
+                  // return amountFormatted > 0 ? <React.Fragment key={symbol}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></React.Fragment> : <></>
+                  return <Row key={symbol} style={{ whiteSpace: 'nowrap' }}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></Row>
+                })}
+              </Col>
             </Row>
             <Row>
               <Label>total disbursed</Label>
