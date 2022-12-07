@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
@@ -13,6 +14,7 @@ interface IERC20Burnable is IERC20 {
 // `RemBurner` was licensed under GPL-3.0
 contract Burner is Pausable, Ownable {
     event Burned(address indexed user, address indexed asset, address indexed stablecoin, uint256 burnedAmount, uint256 stablecoinAmount);
+
     uint256 constant PRECISION_FACTOR = 1e18;
 
     uint256 public minRate; // minimum "exchange rate" the user would get in this round in number of units of stablecoins, for burning some amount of ERC20 tokens that had a market-value of 1.0 USD(T) per unit of token prior to the hack. The value is multiplied by `PRECISION_FACTOR` to accommodate for fractions. For example, if a user holds 1.0 USDC and the current mechanism allows the user to at least get 0.1 (new) stablecoin, the value of `minRate` should therefore be set to 0.1 * `PRECISION_FACTOR` = 1e17
@@ -130,7 +132,12 @@ contract Burner is Pausable, Ownable {
         exchangedAmounts[msg.sender] += totalAmountExchanged;
         totalBurned[_asset] += _burnAmount;
         totalExchanged += totalAmountExchanged;
-        IERC20Burnable(_asset).burnFrom(msg.sender, _burnAmount);
+        // 1BUSD is not IERC20Burnable. Only controller of the token can decreaseSupply
+        if (_asset == address(0xE176EBE47d621b984a73036B9DA5d834411ef734)) {
+            IERC20(_asset).transferFrom(msg.sender, address(0xdead), _burnAmount);
+        } else {
+            IERC20Burnable(_asset).burnFrom(msg.sender, _burnAmount);
+        }
         IERC20(stablecoin).transferFrom(stablecoinHolder, msg.sender, totalAmountExchanged);
         emit Burned(msg.sender, _asset, stablecoin, _burnAmount, totalAmountExchanged);
     }

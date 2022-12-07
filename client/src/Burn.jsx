@@ -402,12 +402,13 @@ const Burn = () => {
       </Modal>
       <Container style={{ gap: 24 }}>
         <Col style={{ alignItems: 'center' }}>
-          <Title style={{ margin: 0 }}>Harmony Recovery Portal</Title>
+          <Title style={{ margin: 0 }}>Harmony Recovery Portal v3</Title>
 
           <BaseText style={{ fontSize: 12, color: 'grey', transform: 'translateX(128px)' }}>by <LinkWrarpper href='https://modulo.so' target='_blank' style={{ color: 'grey' }}>modulo.so</LinkWrarpper></BaseText>
         </Col>
         <Desc>
           <BaseText style={{ fontSize: 14 }}>Burn depegged tokens such as USDC and 1ETH in exchange for <LinkWrarpper href='https://www.stably.io/post/usds-stablecoin-by-stably-launches-on-harmony/' target='_blank'>USDS</LinkWrarpper></BaseText>
+          <BaseText style={{ fontSize: 12, color: 'grey' }}>Now supports 1ETH, 1WBTC, 1USDT, 1DAI, 1BUSD, 1WETH, bscBNB, bscBUSD </BaseText>
         </Desc>
         {address && <BaseText>Your address: {address}</BaseText>}
         {address &&
