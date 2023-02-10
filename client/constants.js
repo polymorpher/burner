@@ -5,6 +5,7 @@ import USDT from './assets/tokens/tether.svg'
 import DAI from './assets/tokens/dai.svg'
 import BUSD from './assets/tokens/busd.svg'
 import BNB from './assets/tokens/bnb.svg'
+import FRAX from './assets/tokens/frax.svg'
 const debug = process.env.DEBUG
 
 export const MAPPING = debug
@@ -19,6 +20,7 @@ export const MAPPING = debug
       '0xF720b7910C6b2FF5bd167171aDa211E226740bfe': '1WETH',
       '0xb1f6E61E1e113625593a22fa6aa94F8052bc39E0': 'bscBNB',
       '0x0aB43550A6915F9f67d0c454C2E90385E6497EaA': 'bscBUSD',
+      '0xeB6C08ccB4421b6088e581ce04fcFBed15893aC3': '1FRAX',
     }
 
 export const ICONS = debug
@@ -33,4 +35,5 @@ export const ICONS = debug
       '0xF720b7910C6b2FF5bd167171aDa211E226740bfe': ETH,
       '0xb1f6E61E1e113625593a22fa6aa94F8052bc39E0': BNB,
       '0x0aB43550A6915F9f67d0c454C2E90385E6497EaA': BUSD,
+      '0xeB6C08ccB4421b6088e581ce04fcFBed15893aC3': FRAX,
     }
