@@ -181,12 +181,12 @@ const Debug = () => {
       {address && config.debug &&
         <Desc>
           <BaseText>You have {usdcBalanceFormatted} Fake USDC (FUSDC)</BaseText>
-          <BaseText>You have {usdsBalanceFormatted} Fake USDS (FUSDS)</BaseText>
+          <BaseText>You have {usdsBalanceFormatted} Fake USD Coin (FUSDS)</BaseText>
         </Desc>}
       {address && !config.debug &&
         <Desc>
           <BaseText>You have {usdcBalanceFormatted} 1USDC</BaseText>
-          <BaseText>You have {usdsBalanceFormatted} USDS</BaseText>
+          <BaseText>You have {usdsBalanceFormatted} USD Coin</BaseText>
         </Desc>}
     </Container>
   )

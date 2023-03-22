@@ -7,7 +7,7 @@ import { BaseText, Desc, DescLeft, SmallText, Title } from './components/Text'
 import { Col, FlexColumn, FlexRow, Main, Modal, Row } from './components/Layout'
 import styled from 'styled-components'
 import { MAPPING, ICONS } from '../constants'
-import USDS from '../assets/tokens/usds.png'
+import USDC from '../assets/tokens/usdc.svg'
 import { toast } from 'react-toastify'
 import apis, { getBaseStats } from './api'
 import { TailSpin } from 'react-loading-icons'
@@ -49,6 +49,7 @@ const Burn = () => {
   }))
   // const [assetAddress, setAssetAddress] = useState(supportedAssets[0].key)
   const [selectedAsset, setSelectedAsset] = useState(supportedAssets[0])
+  console.log(selectedAsset)
   const [canExchange, setCanExchange] = useState(false)
   const [exchangedAmount, setExchangedAmount] = useState(0)
   const [userBalanceFormatted, setUserBalanceFormatted] = useState(0)
@@ -402,12 +403,12 @@ const Burn = () => {
       </Modal>
       <Container style={{ gap: 24 }}>
         <Col style={{ alignItems: 'center' }}>
-          <Title style={{ margin: 0 }}>Harmony Recovery Portal v3</Title>
+          <Title style={{ margin: 0 }}>Harmony Recovery Portal v4</Title>
 
           <BaseText style={{ fontSize: 12, color: 'grey', transform: 'translateX(128px)' }}>by <LinkWrarpper href='https://modulo.so' target='_blank' style={{ color: 'grey' }}>modulo.so</LinkWrarpper></BaseText>
         </Col>
         <Desc>
-          <BaseText style={{ fontSize: 14 }}>Burn depegged tokens such as USDC and 1ETH in exchange for <LinkWrarpper href='https://www.stably.io/post/usds-stablecoin-by-stably-launches-on-harmony/' target='_blank'>USDS</LinkWrarpper></BaseText>
+          <BaseText style={{ fontSize: 14 }}>Burn depegged tokens such as 1USDC and 1ETH, get <LinkWrarpper href='https://explorer.harmony.one/address/0xBC594CABd205bD993e7FfA6F3e9ceA75c1110da5?activeTab=5' target='_blank'>new USD Coin</LinkWrarpper></BaseText>
           <BaseText style={{ fontSize: 12, color: 'grey' }}>Now supports 1ETH, 1WBTC, 1USDT, 1DAI, 1BUSD, 1WETH, bscBNB, bscBUSD </BaseText>
         </Desc>
         {address && <BaseText>Your address: {address}</BaseText>}
@@ -421,7 +422,7 @@ const Burn = () => {
                   href='#' onClick={e => {
                     e.preventDefault()
                     setSelectAssetVisible(true)
-                  }} style={{ marginLeft: 16 }}
+                  }} style={{ marginLeft: 16, minWidth: 80 }}
                 >{selectedAsset.label}
                 </LinkWrarpper>
                 <Input disabled={!exchangeRate} $margin='8px' style={{ marginLeft: 24, marginRight: 8 }} value={inputValue} onChange={onInputChange} />
@@ -432,15 +433,15 @@ const Burn = () => {
             <Col>
               <Label>get</Label>
               <Row style={{ gap: 0 }}>
-                <IconImg src={USDS} />
-                <BaseText style={{ marginLeft: 16 }}>USDS</BaseText>
+                <IconImg src={USDC} />
+                <BaseText style={{ marginLeft: 16, minWidth: 80 }}>USD Coin</BaseText>
                 <Input disabled={!exchangeRate} $margin='8px' style={{ marginLeft: 24, marginRight: 8 }} value={outputvalue} onChange={onOutputChange} />
                 {!exchangeRate && <TailSpin stroke='grey' width={16} height={16} />}
               </Row>
             </Col>
             <Row style={{ justifyContent: 'center' }}>
               <SmallText style={{ color: 'grey' }}>current rate:</SmallText>
-              {(exchangeRate || !updatingExchangeRate) ? <SmallText style={{ color: 'grey' }}>1.0 {selectedAsset.label} ≈ {exchangeRate * assetValueRate} USDS</SmallText> : <TailSpin stroke='grey' width={16} height={16} />}
+              {(exchangeRate || !updatingExchangeRate) ? <SmallText style={{ color: 'grey' }}>1.0 {selectedAsset.label} ≈ {exchangeRate * assetValueRate} USD Coin</SmallText> : <TailSpin stroke='grey' width={16} height={16} />}
             </Row>
             <Row style={{ justifyContent: 'center' }}>
               <input
@@ -498,11 +499,11 @@ const Burn = () => {
             </Row>
             <Row>
               <Label>per wallet exchange limit</Label>
-              <BaseText>{parameters.perUserLimitAmount} USDS</BaseText>
+              <BaseText>{parameters.perUserLimitAmount} USD Coin</BaseText>
             </Row>
             <Row>
               <Label>rate resets threshold</Label>
-              <BaseText>{parameters.resetThresholdAmount} USDS</BaseText>
+              <BaseText>{parameters.resetThresholdAmount} USD Coin</BaseText>
             </Row>
             <Row>
               <Label>estimated exchange rate in 30m</Label>
@@ -518,7 +519,7 @@ const Burn = () => {
             </Row>
             <Row>
               <Label>your balance</Label>
-              <BaseText>{userStablecoinBalanceFormatted.toFixed(2)} USDS</BaseText>
+              <BaseText>{userStablecoinBalanceFormatted.toFixed(2)} USD Coin</BaseText>
               <Label>/</Label>
               <BaseText>{userBalanceFormatted.toFixed(2)} {assetSymbol}</BaseText>
             </Row>
@@ -528,7 +529,7 @@ const Burn = () => {
             </Row>
             <Row>
               <Label>recovery fund balance</Label>
-              <BaseText>{treasuryBalanceFormatted.toFixed(2)} USDS</BaseText>
+              <BaseText>{treasuryBalanceFormatted.toFixed(2)} USD Coin</BaseText>
             </Row>
             <Row>
               <Label>burner contract</Label>
@@ -549,12 +550,8 @@ const Burn = () => {
         <DescLeft>
           <Title>FAQ</Title>
           <QA>
-            <BaseText>Q: How do I burn something other than USDC?</BaseText>
-            <BaseText>A: In the next round (end of Oct 2022) we will add more token types</BaseText>
-          </QA>
-          <QA>
             <BaseText>Q: How is the rate determined?</BaseText>
-            <BaseText>A: It is dynamically computed based on how much and how often other people are making the exchanges. There is a minimum and a maximum rate, updated by us every two weeks. Within this range, the rate automatically decreases when some tokens get burned, and automatically resets to minimum when a threshold is reached. The rate also automatically goes up over time until it reaches the maximum. If you are not happy for the rate right now, you could wait for rate to go up later, but there is a bi-weekly limit of USDS available for exchange, so it is possible that all available USDS will be gone before you can get a rate that you want, and you would have to wait for the next bi-weekly round. For more information, checkout our <LinkWrarpper href='https://github.com/polymorpher/burner' target='_blank'> GitHub </LinkWrarpper> </BaseText>
+            <BaseText>A: It is dynamically computed based on how much and how often other people are making the exchanges. There is a minimum and a maximum rate, updated by us every two weeks. Within this range, the rate automatically decreases when some tokens get burned, and automatically resets to minimum when a threshold is reached. The rate also automatically goes up over time until it reaches the maximum. If you are not happy for the rate right now, you could wait for rate to go up later, but there is a bi-weekly limit of USD Coin available for exchange, so it is possible that all available USD Coin will be gone before you can get a rate that you want, and you would have to wait for the next bi-weekly round. For more information, checkout our <LinkWrarpper href='https://github.com/polymorpher/burner' target='_blank'> GitHub </LinkWrarpper> </BaseText>
           </QA>
           <QA>
             <BaseText>Q: Can I review the contract and the website's source code?</BaseText>
