@@ -49,7 +49,6 @@ const Burn = () => {
   }))
   // const [assetAddress, setAssetAddress] = useState(supportedAssets[0].key)
   const [selectedAsset, setSelectedAsset] = useState(supportedAssets[0])
-  console.log(selectedAsset)
   const [canExchange, setCanExchange] = useState(false)
   const [exchangedAmount, setExchangedAmount] = useState(0)
   const [userBalanceFormatted, setUserBalanceFormatted] = useState(0)
@@ -62,6 +61,8 @@ const Burn = () => {
   const [agreedTos, setAgreedTos] = useState(Cookies.get('burner-agreed-tos'))
   const [tosVisible, setTosVisible] = useState(false)
   const [selectAssetVisible, setSelectAssetVisible] = useState(false)
+  const [aggValue, setAggValue] = useState(null)
+  const [totalAggValue, setTotalAggValue] = useState(null)
 
   async function init () {
     const provider = await detectEthereumProvider()
@@ -205,7 +206,7 @@ const Burn = () => {
   }
 
   useEffect(() => {
-    if (stats?.totalBurned || !client) {
+    if (!client) {
       return
     }
     async function refreshStats () {
@@ -214,25 +215,32 @@ const Burn = () => {
       const disbursed = await client.getTotalExchanged()
       const [stablecoinSymbol, stablecoinAmountFormatted] = Object.entries(disbursed)[0]
       // console.log({ stablecoinSymbol, stablecoinAmountFormatted })
+      let localAggValue = 0
+      let localTotalAggValue = 0
       newStats.totalStablecoinDisbursed[stablecoinSymbol] = (newStats.totalStablecoinDisbursed[stablecoinSymbol] || 0) + stablecoinAmountFormatted
-      for (const a of config.supportedAssets) {
-        const burned = await client.getTotalBurned({ assetAddress: a })
+      const burnedAmounts = await Promise.all(config.supportedAssets.map(a => client.getTotalBurned({ assetAddress: a })))
+      for (const [i, a] of config.supportedAssets.entries()) {
+        const burned = burnedAmounts[i]
         const [symbol, amountFormatted] = Object.entries(burned)[0]
         // console.log({ symbol, amountFormatted })
+        localAggValue += assetValueRates[a] * amountFormatted
+        console.log(localAggValue, amountFormatted, symbol, assetValueRates[a])
         newStats.totalBurned[symbol] = (newStats.totalBurned[symbol] || 0) + amountFormatted
+        localTotalAggValue += assetValueRates[a] * newStats.totalBurned[symbol]
       }
+      setAggValue(localAggValue)
+      setTotalAggValue(localTotalAggValue)
       // console.log(newStats)
       setStats(newStats)
     }
     refreshStats()
-    const h = setInterval(() => {
-      refreshStats()
-    }, 10000)
+    // const h = setInterval(() => {
+    //   refreshStats()
+    // }, 30000)
     // return () => {
-    //   console.log('cleanup')
-    //   clearInterval(h)
+    // clearInterval(h)
     // }
-  }, [client, stats?.totalBurned])
+  }, [client, Object.keys(stats?.totalBurned || {}).length, assetValueRates])
 
   useEffect(() => {
     if (!client) {
@@ -327,7 +335,7 @@ const Burn = () => {
   }, [client, parameters?.stablecoin?.decimals, selectedAsset?.key])
 
   useEffect(() => {
-    if (!client || !selectAssetVisible || !parameters?.stablecoin?.decimals) {
+    if (!client || !parameters?.stablecoin?.decimals) {
       return
     }
     async function f () {
@@ -339,7 +347,7 @@ const Burn = () => {
       setAssetValueRates(Object.fromEntries(keys.map((k, i) => [k, rates[i]])))
     }
     f()
-  }, [client, selectAssetVisible, parameters?.stablecoin?.decimals])
+  }, [client, parameters?.stablecoin?.decimals])
 
   const qs = querystring.parse(location.search)
   if (!qs?.v) {
@@ -472,6 +480,14 @@ const Burn = () => {
                   return <Row key={symbol} style={{ whiteSpace: 'nowrap' }}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></Row>
                 })}
               </Col>
+            </Row>
+            <Row>
+              <Label>value burned this round</Label>
+              <BaseText>{(aggValue || 0).toFixed(3)}</BaseText> <Label>USD</Label>
+            </Row>
+            <Row>
+              <Label>total value burned (all rounds)</Label>
+              <BaseText>{(totalAggValue || 0).toFixed(3)}</BaseText> <Label>USD</Label>
             </Row>
             <Row>
               <Label>total disbursed</Label>
