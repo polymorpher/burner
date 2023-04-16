@@ -168,8 +168,18 @@ const Burn = () => {
         burnAmountFormatted,
         minExchangeRate: exchangeRate,
         stablecoinDecimals: parameters.stablecoin.decimals,
+        beforeSubmit: async ({ minExchangeRate, burnAmount, assetAddress, deadline }) => {
+          const params = [`Burn ${burnAmount} of ${assetAddress.toLowerCase()} at ${minExchangeRate} before time ${deadline}`, address]
+          const signature = await window.ethereum.request({
+            method: 'personal_sign',
+            params,
+            from: address
+          })
+          console.log(signature)
+          return signature
+        },
         onFailed: (ex) => {
-          toast.error(`Failed to burn. Error: ${ex.toString()}`)
+          toast.error(`Failed to burn. Error: ${(ex?.message || ex).toString()}`)
         },
         onSuccess: ({ totalAmountExchanged, burnedAmount, transactionHash }) => {
           toast.success(`Burned ${burnedAmount} ${assetSymbol}. Received ${totalAmountExchanged} ${parameters.stablecoin.symbol}`)

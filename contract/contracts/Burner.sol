@@ -4,6 +4,8 @@ pragma solidity ^0.8.17;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 interface IERC20Burnable is IERC20 {
     function burnFrom(address account, uint256 amount) external;
@@ -120,7 +122,12 @@ contract Burner is Pausable, Ownable {
     // @param _asset the ERC20 token contract address, must be under permitted list of ERC20 tokens
     // @param _burnAmount the amount of ERC20 token the user wants to burn in exchange for stablecoin
     // @param _minExchangeRate the lowest exchange rate the user would accept to proceed with burning and exchanging
-    function exchange(address _asset, uint256 _burnAmount, uint256 _minExchangeRate) external onlyAllowedAddresses onlyWhenActive whenNotPaused {
+    function exchange(address _asset, uint256 _burnAmount, uint256 _minExchangeRate, uint256 deadline, bytes memory signature) external onlyAllowedAddresses onlyWhenActive whenNotPaused {
+        require(block.timestamp <= deadline, "deadline exceeded");
+        string memory message = string.concat("Burn ", Strings.toString(_burnAmount), " of ", Strings.toHexString(_asset), " at ", Strings.toString(_minExchangeRate), " before time ", Strings.toString(deadline));
+        bytes32 ethMessageHash = ECDSA.toEthSignedMessageHash(bytes(message));
+        address signer = ECDSA.recover(ethMessageHash, signature);
+        require(signer == msg.sender, "bad signature");
         uint256 valueRate = tokenValueRate[_asset];
         require(valueRate > 0, "unsupported asset");
         uint256 currentExchangeRate = getCurrentExchangeRate();
@@ -141,4 +148,5 @@ contract Burner is Pausable, Ownable {
         IERC20(stablecoin).transferFrom(stablecoinHolder, msg.sender, totalAmountExchanged);
         emit Burned(msg.sender, _asset, stablecoin, _burnAmount, totalAmountExchanged);
     }
+
 }

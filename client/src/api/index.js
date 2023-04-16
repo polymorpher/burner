@@ -147,7 +147,7 @@ const apis = ({ web3, address }) => {
         onFailed && onFailed(ex, true)
       }
     },
-    exchange: async ({ assetAddress, burnAmountFormatted, minExchangeRate, onFailed, onSubmitted, onSuccess, stablecoinDecimals }) => {
+    exchange: async ({ assetAddress, burnAmountFormatted, minExchangeRate, beforeSubmit, onFailed, onTestSucceeded, onSuccess, stablecoinDecimals }) => {
       minExchangeRate = new BN(minExchangeRate * 0.999 * CLIENT_PRECISION).mul(PRECISION_FACTOR).divn(CLIENT_PRECISION)
       const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
       let decimals
@@ -157,9 +157,23 @@ const apis = ({ web3, address }) => {
       } catch (ex) {
         throw new Error(`Cannot read from token contract ${assetAddress}`)
       }
+      const deadline = Math.floor(Date.now() / 1000) + 3600
       console.log('Exchanging with parameters', { minExchangeRate: minExchangeRate.toString(), burnAmount: burnAmountFormatted.toString(), assetAddress })
+      let signature = ''
       try {
-        const testTx = await burnerContract.methods.exchange(assetAddress, burnAmountFormatted, minExchangeRate).call({ from: address })
+        signature = await beforeSubmit({
+          minExchangeRate: minExchangeRate.toString(),
+          burnAmount: burnAmountFormatted.toString(),
+          assetAddress,
+          deadline: deadline.toString()
+        })
+      } catch (ex) {
+        console.error('Signature request error', ex)
+        onFailed && onFailed(ex)
+        return null
+      }
+      try {
+        const testTx = await burnerContract.methods.exchange(assetAddress, burnAmountFormatted, minExchangeRate, deadline, signature).call({ from: address })
         if (config.debug) {
           console.log('testTx', testTx)
         }
@@ -169,9 +183,9 @@ const apis = ({ web3, address }) => {
         onFailed && onFailed(ex)
         return null
       }
-      onSubmitted && onSubmitted()
+      onTestSucceeded && onTestSucceeded()
       try {
-        const tx = await burnerContract.methods.exchange(assetAddress, burnAmountFormatted, minExchangeRate).send({ from: address })
+        const tx = await burnerContract.methods.exchange(assetAddress, burnAmountFormatted, minExchangeRate, deadline, signature).send({ from: address })
         if (config.debug) {
           console.log(JSON.stringify(tx))
         }
