@@ -25,9 +25,7 @@ const MAPPING = {
   '0xeB6C08ccB4421b6088e581ce04fcFBed15893aC3': '1FRAX',
 }
 
-const USDS = '0x471f66F75af9238A2FA23bA23862B5957109fB21'
-
-const REVERSE_MAPPING = Object.fromEntries(Object.entries(MAPPING).map(([a, b]) => [b, a]))
+// const REVERSE_MAPPING = Object.fromEntries(Object.entries(MAPPING).map(([a, b]) => [b, a]))
 
 const getMeta = async (address) => {
   const tokenMetadata = new Contract(IERC20Metadata, address)
@@ -43,14 +41,15 @@ async function main () {
   const basename = path.basename(statsFilename, ext)
   await fs.writeFile(path.join(path.dirname(statsFilename), `${basename}.${new Date().toISOString().replaceAll(':', '-').split('.')[0]}${ext}`), JSON.stringify(stats))
   const contract = new Contract(Burner, burnerContract)
-  const stableMeta = await getMeta(USDS)
+  const stableUsed = await contract.methods.stablecoin().call()
+  const stableMeta = await getMeta(stableUsed)
   console.log('stableMeta', stableMeta)
   const disbursed = await contract.methods.totalExchanged().call()
   console.log('disbursed', disbursed)
   const burned = Object.fromEntries(await Promise.all(Object.keys(MAPPING).map(k => contract.methods.totalBurned(k).call().then(v => [k, v]))))
   console.log('burned', burned)
   const newStats = { totalBurned: { ...stats.totalBurned }, totalStablecoinDisbursed: { ...stats.totalStablecoinDisbursed }, time: Math.floor(Date.now() / 1000) }
-  newStats.totalStablecoinDisbursed.USDS += new BN(disbursed).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(stableMeta.decimals))).toNumber() / CLIENT_PRECISION
+  newStats.totalStablecoinDisbursed[stableMeta.symbol] = (newStats.totalStablecoinDisbursed[stableMeta.symbol] || 0) + new BN(disbursed).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(stableMeta.decimals))).toNumber() / CLIENT_PRECISION
   for (const [address, amount] of Object.entries(burned)) {
     const symbol = MAPPING[address]
     console.log('processing', { symbol, amount, address })

@@ -1,3 +1,5 @@
+// DEPRECATED - use accumulateSum to read numbers directly from contract, and add to prior stats
+
 const Contract = require('web3-eth-contract')
 const Burner = require('../assets/abi/Burner.json')
 const BN = require('bn.js')
