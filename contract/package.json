@@ -43,6 +43,7 @@
         "typescript": "^4.6.4"
     },
     "dependencies": {
-        "bip39": "^3.0.4"
+        "bip39": "^3.0.4",
+        "hardhat-abi-exporter": "^2.10.1"
     }
 }

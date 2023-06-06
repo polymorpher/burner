@@ -1,0 +1,5 @@
+/dist
+/build.sh
+/deploy.sh
+node_modules
+.env

@@ -9,6 +9,7 @@ import 'hardhat-deploy'
 import 'solidity-coverage'
 import '@atixlabs/hardhat-time-n-mine'
 import 'hardhat-contract-sizer'
+import 'hardhat-abi-exporter'
 
 const hardhatUserconfig: HardhatUserConfig = {
   solidity: {
@@ -75,6 +76,15 @@ const hardhatUserconfig: HardhatUserConfig = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: true,
+    only: [':Burner$']
+  },
+  abiExporter: {
+    path: './abi',
+    runOnCompile: true,
+    clear: true,
+    flat: true,
+    spacing: 2,
+    format: 'json',
     only: [':Burner$']
   }
 }
