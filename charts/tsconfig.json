@@ -13,8 +13,7 @@
       "declaration": true,
       "resolveJsonModule": true,
       "noImplicitAny": false,
-      "allowJs": true,
-      "allowImportingTsExtensions": true
+      "allowJs": true
     },
     "include": ["./", "./src"]
 }

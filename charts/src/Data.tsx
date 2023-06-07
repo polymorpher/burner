@@ -6,7 +6,7 @@ import _Wallets from '../assets/data/wallets.json' assert {
         type: 'json',
         integrity: 'sha384-ABC123'
 }
-import { type EventLog, type Wallet } from '../../stats/types.ts'
+import { type EventLog, type Wallet } from '../../stats/types'
 
 export const Wallets: Wallet[] = _Wallets
 export const Events: EventLog[] = _Events

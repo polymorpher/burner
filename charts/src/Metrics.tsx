@@ -1,11 +1,11 @@
-import { type EventLog, type Wallet } from '../../stats/types.ts'
-import groupBy from 'lodash-es/groupBy.js'
-import sum from 'lodash-es/sum.js'
-import uniq from 'lodash-es/uniq.js'
-import mean from 'lodash-es/mean.js'
-import sortBy from 'lodash-es/sortBy.js'
-import config from '../config.ts'
-import { normalizeStablecoinAmount } from './Data.tsx'
+import { type EventLog, type Wallet } from '../../stats/types'
+import groupBy from 'lodash-es/groupBy'
+import sum from 'lodash-es/sum'
+import uniq from 'lodash-es/uniq'
+import mean from 'lodash-es/mean'
+import sortBy from 'lodash-es/sortBy'
+import config from '../config'
+import { normalizeStablecoinAmount } from './Data'
 
 export const computeNumWallets = (events: EventLog[]): number => {
   const wallets = uniq(events.map(e => e.user.toLowerCase()))

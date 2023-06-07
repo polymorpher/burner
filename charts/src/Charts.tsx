@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react'
-import { normalizeStablecoinAmount } from './Data.tsx'
+import { normalizeStablecoinAmount } from './Data'
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
-import groupBy from 'lodash-es/groupBy.js'
-import { type EventLog, type Wallet } from '../../stats/types.ts'
-import sum from 'lodash-es/sum.js'
-import countBy from 'lodash-es/countBy.js'
-import sortBy from 'lodash-es/sortBy.js'
+import groupBy from 'lodash-es/groupBy'
+import { type EventLog, type Wallet } from '../../stats/types'
+import sum from 'lodash-es/sum'
+import countBy from 'lodash-es/countBy'
+import sortBy from 'lodash-es/sortBy'
 
 interface ChartProps {
   events: EventLog[]

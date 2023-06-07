@@ -4,17 +4,17 @@ import {
   DistStablecoinReceived, DistStablecoinReceivedWalletAge,
   DistWalletAge, PlotLineBurnTxOverTime,
   PlotLineStablecoinReceivedOverTime
-} from './Charts.tsx'
-import { Col, Main, Row } from './components/Layout.tsx'
+} from './Charts'
+import { Col, Main, Row } from './components/Layout'
 import {
   computeNumWallets,
   computePercentileBurnTime, computePercentilesStablecoinReceived,
   computePercentileStablecoinDisburseTime, computePercentileWalletAges,
   computeStablecoinReceivedPerGroup, computeWalletTypes, type PercentileReport
-} from './Metrics.tsx'
-import { BaseText, Desc, DescLeft, Title } from './components/Text.tsx'
-import { Events, Wallets } from './Data.tsx'
-import { Button } from './components/Controls.tsx'
+} from './Metrics'
+import { BaseText, Desc, DescLeft, Title } from './components/Text'
+import { Events, Wallets } from './Data'
+import { Button } from './components/Controls'
 
 const Container = styled(Main)`
   margin: 0 auto;
@@ -96,7 +96,7 @@ const Home = (): React.FC => {
   const contractFilter = getRoundContract(round)
   useEffect(() => {
     if (round && !contractFilter) {
-      history.pushState({}, '', '/stats')
+      history.pushState({}, '', '/')
     }
   }, [round, contractFilter])
 
@@ -120,7 +120,7 @@ const Home = (): React.FC => {
   }, [events])
   const redirect = (r) => (): void => {
     setRound(r.toString())
-    history.pushState({}, '', `/stats/${r}`)
+    history.pushState({}, '', `/${r}`)
   }
   return <Container>
     <Row style={{ width: '100%', justifyContent: 'space-between', flexWrap: 'wrap', position: 'fixed', maxWidth: 900, zIndex: 10, background: '#fff', padding: 16 }}>
