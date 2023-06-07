@@ -272,3 +272,49 @@ export const PlotLineBurnAmountOverTime = ({ events, wallets, ...props }: ChartP
       />
   )
 }
+
+export const PlotLineBurnEfficiencyOverTime = ({ events, wallets, ...props }: ChartProps): React.FC => {
+  const chartComponentRef = useRef<HighchartsReact.RefObject>(null)
+
+  const series: number[] = sortBy(events.map(e => ({ ts: Number(e.ts), amount: computeBurnAmount(e) })))
+  const bucketed = Object.entries(groupBy(series, e => Math.floor(e.ts / 86400).toString()))
+  const agged: Array<[number, number]> = bucketed.map(([day, bucket]) => [Number(day), sum((bucket as any).map(e => e.amount))])
+  let s = 0
+  const aggedCumu = agged.map(([day, v]) => [day * 86400 * 1000, (s += v)])
+
+  const series2: number[] = sortBy(events.map(e => ({ ts: Number(e.ts), amount: normalizeStablecoinAmount(e.stablecoinAmount) })))
+  const bucketed2 = Object.entries(groupBy(series2, e => Math.floor(e.ts / 86400).toString()))
+  const agged2: Array<[number, number]> = bucketed2.map(([day, bucket]) => [Number(day), sum((bucket as any).map(e => e.amount))])
+  let s2 = 0
+  const aggedCumu2 = agged2.map(([day, v]) => [day * 86400 * 1000, (s2 += v)])
+  const finalAggCumu = aggedCumu.map(([ts, c], i) => [ts, aggedCumu2[i][1] / c])
+
+  const options = {
+    title: { text: 'Aggregated Burn Rate Over Time (a.k.a burn efficiency, lower is more efficient)' },
+    xAxis: [{
+      title: { text: 'Time' },
+      type: 'datetime',
+      labels: { format: '{value:%Y-%m-%d}' }
+    }],
+    yAxis: [{ title: { text: 'USD Burned' } }],
+    series: [{
+      name: 'Burn Efficiency v. Time',
+      data: finalAggCumu,
+      // eslint-disable-next-line no-template-curly-in-string
+      tooltip: { pointFormat: 'Burn efficiency <b>{point.y}</b>', valueDecimals: 3 }
+    }],
+    credits: { enabled: false }
+  }
+  useEffect(() => {
+    chartComponentRef?.current.chart.redraw()
+  }, [events, wallets])
+  return (
+    <HighchartsReact
+          containerProps={{ style: { width: '100%' } }}
+          highcharts={Highcharts}
+          options={options}
+          ref={chartComponentRef}
+          {...props}
+      />
+  )
+}

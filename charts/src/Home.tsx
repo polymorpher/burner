@@ -2,7 +2,7 @@ import React, { createRef, useEffect, useMemo, useRef, useState } from 'react'
 import styled from 'styled-components'
 import {
   DistStablecoinReceived, DistStablecoinReceivedWalletAge,
-  DistWalletAge, PlotLineBurnAmountOverTime, PlotLineBurnTxOverTime,
+  DistWalletAge, PlotLineBurnAmountOverTime, PlotLineBurnEfficiencyOverTime, PlotLineBurnTxOverTime,
   PlotLineStablecoinReceivedOverTime
 } from './Charts'
 import { Col, Main, Row } from './components/Layout'
@@ -145,6 +145,7 @@ const Home = (): React.FC => {
     <PercentileDisplay title={'Burn Transactions'} desc={'The timestamps when the given percentage of burn transactions in the selected round(s) are completed'} report={metrics.PercentileBurnTime} transformer={v => new Date(v).toLocaleString()}/>
     <PlotLineBurnTxOverTime events={events} wallets={Wallets}/>
     <PlotLineBurnAmountOverTime events={events} wallets={Wallets}/>
+    <PlotLineBurnEfficiencyOverTime events={events} wallets={Wallets}/>
   </Container>
 }
 
