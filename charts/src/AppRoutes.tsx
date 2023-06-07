@@ -6,6 +6,7 @@ const AppRoutes: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path='/stats/*' element={ <Home />} />
         <Route path='/*' element={ <Home />} />
       </Routes>
     </BrowserRouter>

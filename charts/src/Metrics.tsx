@@ -1,26 +1,27 @@
-import _Events from '../assets/data/events.json' assert {
-        type: 'json',
-        integrity: 'sha384-ABC123'
-}
-import _Wallets from '../assets/data/wallets.json' assert {
-        type: 'json',
-        integrity: 'sha384-ABC123'
-}
 import { type EventLog, type Wallet } from '../../stats/types.ts'
 import groupBy from 'lodash-es/groupBy.js'
 import sum from 'lodash-es/sum.js'
+import uniq from 'lodash-es/uniq.js'
 import mean from 'lodash-es/mean.js'
 import sortBy from 'lodash-es/sortBy.js'
 import config from '../config.ts'
+import { normalizeStablecoinAmount } from './Data.tsx'
 
-const Wallets: Wallet[] = _Wallets
-const Events: EventLog[] = _Events
-
-export const NumWallets = (): number => {
-  return Wallets.length
+export const computeNumWallets = (events: EventLog[]): number => {
+  const wallets = uniq(events.map(e => e.user.toLowerCase()))
+  return wallets.length
 }
 
-interface PercentileReport {
+export const computeWalletTypes = (events: EventLog[], wallets: Wallet[]): { eoa: number, sc: number } => {
+  const users = uniq(events.map(e => e.user.toLowerCase()))
+  const walletToIsEoa = Object.fromEntries(wallets.map(w => [w.address.toLowerCase(), w.isEoa]))
+  return {
+    eoa: users.filter(e => walletToIsEoa[e]).length,
+    sc: users.filter(e => !walletToIsEoa[e]).length
+  }
+}
+
+export interface PercentileReport {
   '10': number
   '25': number
   '50': number
@@ -29,8 +30,6 @@ interface PercentileReport {
   'avg'?: number
 }
 
-const normalizeStablecoinAmount = (e: string): number => Number(BigInt(e) / BigInt(1e+6))
-
 const computePercentiles = (values: number[], transformer = e => e): PercentileReport => {
   const sorted = sortBy(values)
   const len = sorted.length
@@ -38,48 +37,48 @@ const computePercentiles = (values: number[], transformer = e => e): PercentileR
   const indexes = percs.map(e => Math.floor(e / 100 * len))
   return Object.fromEntries([...indexes.map((pos, i) => [percs[i], transformer(sorted[pos])]), ['avg', transformer(mean(sorted))]])
 }
-export const computePercentilesStablecoinReceived = (): PercentileReport => {
-  const walletAndTransactions = groupBy(Events, (e: EventLog) => e.user.toLowerCase())
+export const computePercentilesStablecoinReceived = (events: EventLog[]): PercentileReport => {
+  const walletAndTransactions = groupBy(events, (e: EventLog) => e.user.toLowerCase())
   const sums: number[] = Object.entries(walletAndTransactions).map(([, txs]) =>
     sum((txs as EventLog[]).map(e => normalizeStablecoinAmount(e.stablecoinAmount)))
   )
   return computePercentiles(sums)
 }
 
-export const computePercentileWalletAges = (): PercentileReport => {
+export const computePercentileWalletAges = (wallets: Wallet[]): PercentileReport => {
   const now = Math.floor(Date.now() / 1000)
-  const ages = Wallets.map(e => (now - e.createdAt) / 86400)
+  const ages = wallets.map(e => (now - e.createdAt) / 86400)
   return computePercentiles(ages)
 }
 
 const getWalletGroup = (createdAt: number): string => {
   if (createdAt < config.hackTime) {
-    return 'pre-hack'
+    return '[1] pre-hack'
   }
-  if (createdAt < config.hackTime + 86400 * 90) {
-    return 'pre-recovery'
+  if (createdAt < config.hackTime + 86400 * 100) {
+    return '[2] pre-recovery'
   }
-  return 'post-recovery'
+  return '[3] post-recovery'
 }
 
-export const computeStablecoinReceivedPerGroup = (): Record<string, number> => {
-  const groups = groupBy(Wallets, (w: Wallet) => getWalletGroup(w.createdAt))
+export const computeStablecoinReceivedPerGroup = (events: EventLog[], wallets: Wallet[]): Record<string, number> => {
+  const groups = groupBy(wallets, (w: Wallet) => getWalletGroup(w.createdAt))
   const walletToGroup = Object.fromEntries(
     Object.entries(groups)
-      .map(([group, wallets]) =>
-        (wallets as Wallet[]).map(e => [e.address.toLowerCase(), group])
+      .map(([group, ws]) =>
+        (ws as Wallet[]).map(e => [e.address.toLowerCase(), group])
       ).flat()
   )
-  const groupAndTransactions = groupBy(Events, (e: EventLog) => walletToGroup[e.user.toLowerCase()])
+  const groupAndTransactions = groupBy(events, (e: EventLog) => walletToGroup[e.user.toLowerCase()])
   const groupAndSum: Array<[string, number]> = Object.entries(groupAndTransactions).map(([group, txs]) =>
     [group, sum((txs as EventLog[]).map(e => normalizeStablecoinAmount(e.stablecoinAmount)))]
   )
-  return Object.fromEntries(groupAndSum)
+  return Object.fromEntries(sortBy(groupAndSum, e => e[0]))
 }
 
-export const computePercentileStablecoinDisburseTime = (): PercentileReport => {
-  const sortedEvents: EventLog[] = sortBy(Events, (e: EventLog) => Number(e.ts))
-  const total = sum(Events.map(e => normalizeStablecoinAmount(e.stablecoinAmount)))
+export const computePercentileStablecoinDisburseTime = (events: EventLog[]): PercentileReport => {
+  const sortedEvents: EventLog[] = sortBy(events, (e: EventLog) => Number(e.ts))
+  const total = sum(events.map(e => normalizeStablecoinAmount(e.stablecoinAmount)))
   const percentiles = [10, 25, 50, 75, 90]
 
   const ret = {}
@@ -97,20 +96,20 @@ export const computePercentileStablecoinDisburseTime = (): PercentileReport => {
   return ret as PercentileReport
 }
 
-export const computePercentileBurnTime = (): PercentileReport => {
-  const tss = Events.map(e => Number(e.ts))
-  return computePercentiles(tss, e => new Date(Math.floor(e) * 1000))
+export const computePercentileBurnTime = (events: EventLog[]): PercentileReport => {
+  const tss = events.map(e => Number(e.ts))
+  return { ...computePercentiles(tss, e => new Date(Math.floor(e) * 1000)), avg: undefined }
 }
 
-async function main () {
-  const r = {
-    PercentileBurnTime: computePercentileBurnTime(),
-    PercentileStablecoinDisburseTime: computePercentileStablecoinDisburseTime(),
-    StablecoinReceivedPerGroup: computeStablecoinReceivedPerGroup(),
-    PercentileWalletAges: computePercentileWalletAges(),
-    PercentilesStablecoinReceived: computePercentilesStablecoinReceived()
-  }
-  console.log(r)
-}
-
-main().catch(console.error)
+// async function main () {
+//   const r = {
+//     PercentileBurnTime: computePercentileBurnTime(),
+//     PercentileStablecoinDisburseTime: computePercentileStablecoinDisburseTime(),
+//     StablecoinReceivedPerGroup: computeStablecoinReceivedPerGroup(),
+//     PercentileWalletAges: computePercentileWalletAges(),
+//     PercentilesStablecoinReceived: computePercentilesStablecoinReceived()
+//   }
+//   console.log(r)
+// }
+//
+// main().catch(console.error)

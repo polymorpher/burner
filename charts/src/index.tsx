@@ -1,6 +1,6 @@
 import './app.scss'
 import React from 'react'
-import { createRoot } from 'react-dom'
+import { createRoot } from 'react-dom/client'
 import AppRoutes from './AppRoutes'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
