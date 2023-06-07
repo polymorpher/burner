@@ -119,16 +119,16 @@ const Home = (): React.FC => {
     })
   }, [events])
   const redirect = (r) => (): void => {
-    setRound(r)
+    setRound(r.toString())
     history.pushState({}, '', `/stats/${r}`)
   }
   return <Container>
     <Row style={{ width: '100%', justifyContent: 'space-between', flexWrap: 'wrap', position: 'fixed', maxWidth: 900, zIndex: 10, background: '#fff', padding: 16 }}>
-      <Button onClick={redirect('')}>ALL</Button>
-      <Button onClick={redirect(5)}>Round 5</Button>
-      <Button onClick={redirect(6)}>Round 6</Button>
-      <Button onClick={redirect(7)}>Round 7</Button>
-      <Button onClick={redirect(8)}>Round 8</Button>
+      <Button $selected={!contractFilter} onClick={redirect('')}>ALL</Button>
+      <Button $selected={round === '5'} onClick={redirect(5)}>Round 5</Button>
+      <Button $selected={round === '6'} onClick={redirect(6)}>Round 6</Button>
+      <Button $selected={round === '7'} onClick={redirect(7)}>Round 7</Button>
+      <Button $selected={round === '8'} onClick={redirect(8)}>Round 8</Button>
     </Row>
     <div style={{ padding: 16 }}/>
     <KeyValueDisplay title={'Stablecoin Received Per Wallet Group'} desc={'Wallets are divided into three groups: (1) pre-hacked, those wallets created before the time when the bridge hack took place (2022-06-23T11:06:46.000Z); (2) pre-recovery, meaning those wallets created within 100 days after the time of the bridge hack; and (3) post-recovery, covering all the rest of the wallets'} kv={metrics.StablecoinReceivedPerGroup}/>

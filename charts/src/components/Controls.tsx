@@ -8,7 +8,7 @@ export const Button = styled.button`
   
   width: ${props => props.$width || '128px'};
   color: white;
-  background: black;
+  background: ${props => props.$selected ? 'red' : 'black'};
   padding: 8px 16px;
   text-align: center;
   &:hover{
