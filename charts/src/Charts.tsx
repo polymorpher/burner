@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { normalizeStablecoinAmount } from './Data'
+import { computeBurnAmount, normalizeStablecoinAmount } from './Data'
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
 import groupBy from 'lodash-es/groupBy'
@@ -206,7 +206,7 @@ export const PlotLineBurnTxOverTime = ({ events, wallets, ...props }: ChartProps
   let s = 0
   const aggedCumu = agged.map(([day, v]) => [day * 86400 * 1000, (s += v)])
   const options = {
-    title: { text: 'Brun Transactions Over Time' },
+    title: { text: 'Burn Transactions Over Time' },
     xAxis: [{
       title: { text: 'Time' },
       type: 'datetime',
@@ -217,6 +217,45 @@ export const PlotLineBurnTxOverTime = ({ events, wallets, ...props }: ChartProps
       name: 'Burn Transactions v. Time',
       data: aggedCumu,
       tooltip: { pointFormat: '# Burn Txs <b>{point.y}</b>', valueDecimals: 0 }
+    }],
+    credits: { enabled: false }
+  }
+  useEffect(() => {
+    chartComponentRef?.current.chart.redraw()
+  }, [events, wallets])
+  return (
+    <HighchartsReact
+          containerProps={{ style: { width: '100%' } }}
+          highcharts={Highcharts}
+          options={options}
+          ref={chartComponentRef}
+          {...props}
+      />
+  )
+}
+
+export const PlotLineBurnAmountOverTime = ({ events, wallets, ...props }: ChartProps): React.FC => {
+  const chartComponentRef = useRef<HighchartsReact.RefObject>(null)
+
+  const series: number[] = sortBy(events.map(e => ({ ts: Number(e.ts), amount: computeBurnAmount(e) })))
+  const bucketed = Object.entries(groupBy(series, e => Math.floor(e.ts / 86400).toString()))
+  const agged: Array<[number, number]> = bucketed.map(([day, bucket]) => [Number(day), sum((bucket as any).map(e => e.amount))])
+  let s = 0
+  const aggedCumu = agged.map(([day, v]) => [day * 86400 * 1000, (s += v)])
+
+  const options = {
+    title: { text: 'Burn Amount (USD) Over Time' },
+    xAxis: [{
+      title: { text: 'Time' },
+      type: 'datetime',
+      labels: { format: '{value:%Y-%m-%d}' }
+    }],
+    yAxis: [{ title: { text: 'USD Burned' } }],
+    series: [{
+      name: 'Burn Amount (USD) v. Time',
+      data: aggedCumu,
+      // eslint-disable-next-line no-template-curly-in-string
+      tooltip: { pointFormat: 'Total Burned <b>${point.y}</b>', valueDecimals: 0 }
     }],
     credits: { enabled: false }
   }
