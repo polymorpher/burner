@@ -1,4 +1,6 @@
 test.ts
 test.events.csv
-*.csv
-*.json
+/*.csv
+/*.json
+!tsconfig.json
+!package.json
