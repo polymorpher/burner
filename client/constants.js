@@ -6,8 +6,10 @@ import DAI from './assets/tokens/dai.svg'
 import BUSD from './assets/tokens/busd.svg'
 import BNB from './assets/tokens/bnb.svg'
 import FRAX from './assets/tokens/frax.svg'
+import TQONE from './assets/tokens/tranquil.svg'
 const debug = process.env.DEBUG
 
+export const DEAD_ADDRESS = '0x000000000000000000000000000000000000dead'
 export const MAPPING = debug
   ? { '0x75Ec611271226b930e570A3B2324eB9FA316a94d': 'FUSDC', '0xF3ee4bc9678EBD6FfE6E91988D83903390f0A9d5': 'FETH' }
   : {
@@ -21,6 +23,7 @@ export const MAPPING = debug
       '0xb1f6E61E1e113625593a22fa6aa94F8052bc39E0': 'bscBNB',
       '0x0aB43550A6915F9f67d0c454C2E90385E6497EaA': 'bscBUSD',
       '0xeB6C08ccB4421b6088e581ce04fcFBed15893aC3': '1FRAX',
+      '0x34B9aa82D89AE04f0f546Ca5eC9C93eFE1288940': 'tqOne',
     }
 
 export const ICONS = debug
@@ -36,4 +39,5 @@ export const ICONS = debug
       '0xb1f6E61E1e113625593a22fa6aa94F8052bc39E0': BNB,
       '0x0aB43550A6915F9f67d0c454C2E90385E6497EaA': BUSD,
       '0xeB6C08ccB4421b6088e581ce04fcFBed15893aC3': FRAX,
+      '0x34B9aa82D89AE04f0f546Ca5eC9C93eFE1288940': TQONE,
     }

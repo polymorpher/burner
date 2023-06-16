@@ -23,6 +23,7 @@ const MAPPING = {
   '0xb1f6E61E1e113625593a22fa6aa94F8052bc39E0': 'bscBNB',
   '0x0aB43550A6915F9f67d0c454C2E90385E6497EaA': 'bscBUSD',
   '0xeB6C08ccB4421b6088e581ce04fcFBed15893aC3': '1FRAX',
+  '0xeB6C08ccB4421b6088e581ce04fcFBed15893aC3': 'tqOne',
 }
 
 // const REVERSE_MAPPING = Object.fromEntries(Object.entries(MAPPING).map(([a, b]) => [b, a]))

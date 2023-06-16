@@ -24,7 +24,11 @@ const config = {
         },
         rpcUrls: ['https://api.harmony.one'],
         blockExplorerUrls: ['https://explorer.harmony.one/']
-      }
+      },
+  tq: {
+    comptroller: process.env.TQ_COMPTROLLER || '',
+    tqOne: process.env.TQ_ONE || ''
+  }
 }
 
 export default config
