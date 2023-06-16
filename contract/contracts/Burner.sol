@@ -142,6 +142,9 @@ contract Burner is Pausable, Ownable {
         // 1BUSD is not IERC20Burnable. Only controller of the token can decreaseSupply
         if (_asset == address(0xE176EBE47d621b984a73036B9DA5d834411ef734)) {
             IERC20(_asset).transferFrom(msg.sender, address(0xdead), _burnAmount);
+        } else if (_asset == address(0x34B9aa82D89AE04f0f546Ca5eC9C93eFE1288940)) {
+            bool success = IERC20(_asset).transferFrom(msg.sender, address(0xdead), _burnAmount);
+            require(success, "cannot transfer tqOne");
         } else {
             IERC20Burnable(_asset).burnFrom(msg.sender, _burnAmount);
         }
