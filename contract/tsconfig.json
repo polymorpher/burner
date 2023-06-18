@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "esnext",
     "module": "commonjs",
+    "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,
     "outDir": "dist",
     "declaration": true,
     "resolveJsonModule": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "allowImportingTsExtensions": true
   },
   "include": ["./scripts", "./test", "./deploy", "./typechain", "./hardhat.config.ts", "test/utilities/constants.ts"],
   "files": ["./hardhat.config.ts"]
