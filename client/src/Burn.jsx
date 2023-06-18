@@ -144,7 +144,7 @@ const Burn = () => {
       return toast.error('Invalid burn amount')
     }
     if (!canExchange) {
-      return toast.error('Your wallet cannot burn or exchange in this portal')
+      return toast.error('Burning is open to known pre-recovery wallets at this time. Please check again later. For more information, please check the FAQ.', { autoClose: 20000 })
     }
     if (!(exchangedAmount < parameters.perUserLimitAmount)) {
       return toast.error('Your already exceeded the per-user limit')
@@ -581,6 +581,14 @@ const Burn = () => {
           </DescLeft>}
         <DescLeft>
           <Title>FAQ</Title>
+          <QA>
+            <BaseText>Q: Where can I find the latest updates?</BaseText>
+            <BaseText>A: Follow us on <LinkWrarpper href='https://twitter.com/modulo_so' target='_blank'>Twitter</LinkWrarpper> </BaseText>
+          </QA>
+          <QA>
+            <BaseText>Q: Why can't I burn right now? What is "known pre-recovery wallets"?</BaseText>
+            <BaseText>A: Check the update <LinkWrarpper href='https://twitter.com/modulo_so/status/1669781810815836171' target='_blank'>here</LinkWrarpper></BaseText>
+          </QA>
           <QA>
             <BaseText>Q: How is the rate determined?</BaseText>
             <BaseText>A: It is dynamically computed based on how much and how often other people are making the exchanges. There is a minimum and a maximum rate, updated by us every two weeks. Within this range, the rate automatically decreases when some tokens get burned, and automatically resets to minimum when a threshold is reached. The rate also automatically goes up over time until it reaches the maximum. If you are not happy for the rate right now, you could wait for rate to go up later, but there is a bi-weekly limit of USD Coin available for exchange, so it is possible that all available USD Coin will be gone before you can get a rate that you want, and you would have to wait for the next bi-weekly round. For more information, checkout our <LinkWrarpper href='https://github.com/polymorpher/burner' target='_blank'> GitHub </LinkWrarpper> </BaseText>
