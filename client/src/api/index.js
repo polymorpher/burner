@@ -1,4 +1,5 @@
 import Burner from '../../assets/abi/Burner.json'
+import Comptroller from '../../assets/abi/Comptroller.json'
 import IERC20Metadata from '../../assets/abi/IERC20Metadata.json'
 import IERC20 from '../../assets/abi/IERC20.json'
 import IFakeAsset from '../../assets/abi/IFakeAsset.json'
@@ -6,6 +7,7 @@ import Contract from 'web3-eth-contract'
 import BN from 'bn.js'
 import config from '../../config'
 import axios from 'axios'
+import { DEAD_ADDRESS } from '../../constants'
 const PRECISION_FACTOR = new BN(10).pow(new BN(18))
 const CLIENT_PRECISION = 1e+6
 const exp10BN = (decimals) => new BN(10).pow(new BN(decimals))
@@ -24,6 +26,14 @@ const apis = ({ web3, address }) => {
       const symbol = await tokenMetadata.methods.symbol().call()
       const decimals = await tokenMetadata.methods.decimals().call()
       return { [symbol]: new BN(totalBurned).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION }
+    },
+    getTqTransferAllowed: async ({ assetAddress, amountFormatted }) => {
+      const c = await new Contract(Comptroller, config.tq.comptroller)
+      const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
+      const decimals = await tokenMetadata.methods.decimals().call()
+      const amount = new BN(amountFormatted * CLIENT_PRECISION).mul(exp10BN(decimals)).divn(CLIENT_PRECISION)
+      const allowed = await c.methods.transferAllowed(assetAddress, address, DEAD_ADDRESS, amount).call()
+      return allowed === 'true' || Boolean(allowed)
     },
     getTotalExchanged: async () => {
       const totalExchanged = await burnerContract.methods.totalExchanged().call()

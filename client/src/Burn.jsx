@@ -144,7 +144,7 @@ const Burn = () => {
       return toast.error('Invalid burn amount')
     }
     if (!canExchange) {
-      return toast.error('Your wallet cannot burn or exchange in this portal')
+      return toast.error('Burning is open to known pre-recovery wallets at this time. Please check again later. For more information, please check the FAQ.', { autoClose: 20000 })
     }
     if (!(exchangedAmount < parameters.perUserLimitAmount)) {
       return toast.error('Your already exceeded the per-user limit')
@@ -152,6 +152,12 @@ const Burn = () => {
     const { formatted: userFormattedBalance } = await client.getERC20Balance({ assetAddress: selectedAsset.key })
     if (!(userFormattedBalance > burnAmountFormatted)) {
       return toast.error('You do not have sufficient asset to burn. Please adjust the amount')
+    }
+    if (selectedAsset.key.toLowerCase() === config.tq.tqOne) {
+      const allowed = client.getTqTransferAllowed({ assetAddress: selectedAsset.key, amountFormatted: burnAmountFormatted })
+      if (!allowed) {
+        return toast.error('You have outstanding debt in Tranquil. Please close those positions first')
+      }
     }
     try {
       setBurning(true)
@@ -421,13 +427,13 @@ const Burn = () => {
       </Modal>
       <Container style={{ gap: 24 }}>
         <Col style={{ alignItems: 'center' }}>
-          <Title style={{ margin: 0 }}>Harmony Recovery Portal v5</Title>
+          <Title style={{ margin: 0 }}>Harmony Recovery Portal v6</Title>
 
           <BaseText style={{ fontSize: 12, color: 'grey', transform: 'translateX(128px)' }}>by <LinkWrarpper href='https://modulo.so' target='_blank' style={{ color: 'grey' }}>modulo.so</LinkWrarpper></BaseText>
         </Col>
         <Desc>
           <BaseText style={{ fontSize: 14 }}>Burn depegged tokens such as 1USDC and 1ETH, get <LinkWrarpper href='https://explorer.harmony.one/address/0xBC594CABd205bD993e7FfA6F3e9ceA75c1110da5?activeTab=5' target='_blank'>new USD Coin</LinkWrarpper></BaseText>
-          <BaseText style={{ fontSize: 12, color: 'grey' }}>Now supports most assets and verifies you are not smart contract bot </BaseText>
+          <BaseText style={{ fontSize: 12, color: 'grey' }}><a href='https://burner-stats.modulo.so' target='_blank' rel='noreferrer'>Burner stats</a>  are now available. Now also supports Tranquil assets (tqOne) </BaseText>
         </Desc>
         {address && <BaseText>Your address: {address}</BaseText>}
         {address &&
@@ -575,6 +581,14 @@ const Burn = () => {
           </DescLeft>}
         <DescLeft>
           <Title>FAQ</Title>
+          <QA>
+            <BaseText>Q: Where can I find the latest updates?</BaseText>
+            <BaseText>A: Follow us on <LinkWrarpper href='https://twitter.com/modulo_so' target='_blank'>Twitter</LinkWrarpper> </BaseText>
+          </QA>
+          <QA>
+            <BaseText>Q: Why can't I burn right now? What is "known pre-recovery wallets"?</BaseText>
+            <BaseText>A: Check the update <LinkWrarpper href='https://twitter.com/modulo_so/status/1669781810815836171' target='_blank'>here</LinkWrarpper></BaseText>
+          </QA>
           <QA>
             <BaseText>Q: How is the rate determined?</BaseText>
             <BaseText>A: It is dynamically computed based on how much and how often other people are making the exchanges. There is a minimum and a maximum rate, updated by us every two weeks. Within this range, the rate automatically decreases when some tokens get burned, and automatically resets to minimum when a threshold is reached. The rate also automatically goes up over time until it reaches the maximum. If you are not happy for the rate right now, you could wait for rate to go up later, but there is a bi-weekly limit of USD Coin available for exchange, so it is possible that all available USD Coin will be gone before you can get a rate that you want, and you would have to wait for the next bi-weekly round. For more information, checkout our <LinkWrarpper href='https://github.com/polymorpher/burner' target='_blank'> GitHub </LinkWrarpper> </BaseText>

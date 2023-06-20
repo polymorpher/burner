@@ -23,7 +23,8 @@ export const Rates = {
   '0xf720b7910c6b2ff5bd167171ada211e226740bfe': 1100,
   '0xb1f6e61e1e113625593a22fa6aa94f8052bc39e0': 220,
   '0x0ab43550a6915f9f67d0c454c2e90385e6497eaa': 1,
-  '0xeb6c08ccb4421b6088e581ce04fcfbed15893ac3': 1
+  '0xeb6c08ccb4421b6088e581ce04fcfbed15893ac3': 1,
+  '0x34B9aa82D89AE04f0f546Ca5eC9C93eFE1288940': 0.00022
 }
 
 export const Decimals = {
@@ -36,7 +37,8 @@ export const Decimals = {
   '0xf720b7910c6b2ff5bd167171ada211e226740bfe': 18,
   '0xb1f6e61e1e113625593a22fa6aa94f8052bc39e0': 18,
   '0x0ab43550a6915f9f67d0c454c2e90385e6497eaa': 18,
-  '0xeb6c08ccb4421b6088e581ce04fcfbed15893ac3': 18
+  '0xeb6c08ccb4421b6088e581ce04fcfbed15893ac3': 18,
+  '0x34B9aa82D89AE04f0f546Ca5eC9C93eFE1288940': 8
 }
 
 export const computeBurnAmount = (e: EventLog): number => {

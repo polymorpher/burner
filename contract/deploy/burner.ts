@@ -3,7 +3,7 @@ import { ethers } from 'hardhat'
 import config from '../config'
 import BN from 'bn.js'
 const PRECISION_FACTOR = new BN(10).pow(new BN(18))
-const PARAMETER_PRECISION = 1e+6
+const PARAMETER_PRECISION = 1e+9
 
 const getMeta = async (address) => {
   const tokenMetadata = await ethers.getContractAt('IERC20Metadata', address)
@@ -25,7 +25,7 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
     tokenLabels.push(symbol)
     tokenAddresses.push(key)
     // @ts-ignore
-    const amount = new BN(value).mul(PRECISION_FACTOR).div(exp10BN(decimals)).mul(exp10BN(stableDecimals))
+    const amount = new BN(value * PARAMETER_PRECISION).mul(PRECISION_FACTOR).div(exp10BN(decimals)).mul(exp10BN(stableDecimals)).div(new BN(PARAMETER_PRECISION))
     tokenValueAmounts.push(amount.toString())
   }
 
