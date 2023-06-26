@@ -5,7 +5,6 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const Dotenv = require('dotenv-webpack')
-const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
 
 module.exports = {
   devServer: {
@@ -116,6 +115,7 @@ module.exports = {
   },
   plugins: [
     new Dotenv({
+      path: process.env.ENV_FILE ? `./.env.${process.env.ENV_FILE}` : './.env',
       allowEmptyValues: true,
       systemvars: true,
     }),

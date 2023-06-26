@@ -23,7 +23,7 @@ export const MAPPING = debug
       '0xb1f6E61E1e113625593a22fa6aa94F8052bc39E0': 'bscBNB',
       '0x0aB43550A6915F9f67d0c454C2E90385E6497EaA': 'bscBUSD',
       '0xeB6C08ccB4421b6088e581ce04fcFBed15893aC3': '1FRAX',
-      '0x34B9aa82D89AE04f0f546Ca5eC9C93eFE1288940': 'tqOne',
+      '0x34B9aa82D89AE04f0f546Ca5eC9C93eFE1288940': 'tqONE',
     }
 
 export const ICONS = debug

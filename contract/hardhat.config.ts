@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { HardhatUserConfig } from 'hardhat/config'
 import '@nomiclabs/hardhat-etherscan'
 import '@nomiclabs/hardhat-waffle'
@@ -10,6 +9,7 @@ import 'solidity-coverage'
 import '@atixlabs/hardhat-time-n-mine'
 import 'hardhat-contract-sizer'
 import 'hardhat-abi-exporter'
+import './config'
 
 const hardhatUserconfig: HardhatUserConfig = {
   solidity: {

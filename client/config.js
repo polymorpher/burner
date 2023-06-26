@@ -28,7 +28,13 @@ const config = {
   tq: {
     comptroller: process.env.TQ_COMPTROLLER || '',
     tqOne: process.env.TQ_ONE || ''
-  }
+  },
+  statsPath: process.env.STATS_PATH ?? '/stats',
+  title: process.env.TITLE ?? 'HARMONY RECOVERY PORTAL V6',
+  subtitle: process.env.SUBTITLE,
+  tagline: process.env.TAGLINE,
 }
+
+console.log(config)
 
 export default config

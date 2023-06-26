@@ -1,6 +1,12 @@
 import * as dotenv from 'dotenv'
 const debug = (process.env.DEBUG === '1') || process.env.DEBUG === 'true'
-dotenv.config()
+const envFile = process.env.ENV_FILE ?? ''
+
+if (!envFile) {
+  dotenv.config()
+} else {
+  dotenv.config({ path: `./.env.${envFile}` })
+}
 
 export default {
   debug,

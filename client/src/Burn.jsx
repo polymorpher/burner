@@ -427,13 +427,13 @@ const Burn = () => {
       </Modal>
       <Container style={{ gap: 24 }}>
         <Col style={{ alignItems: 'center' }}>
-          <Title style={{ margin: 0 }}>Harmony Recovery Portal v6</Title>
+          <Title style={{ margin: 0 }}>{config.title}</Title>
 
           <BaseText style={{ fontSize: 12, color: 'grey', transform: 'translateX(128px)' }}>by <LinkWrarpper href='https://modulo.so' target='_blank' style={{ color: 'grey' }}>modulo.so</LinkWrarpper></BaseText>
         </Col>
         <Desc>
-          <BaseText style={{ fontSize: 14 }}>Burn depegged tokens such as 1USDC and 1ETH, get <LinkWrarpper href='https://explorer.harmony.one/address/0xBC594CABd205bD993e7FfA6F3e9ceA75c1110da5?activeTab=5' target='_blank'>new USD Coin</LinkWrarpper></BaseText>
-          <BaseText style={{ fontSize: 12, color: 'grey' }}><a href='https://burner-stats.modulo.so' target='_blank' rel='noreferrer'>Burner stats</a>  are now available. Now also supports Tranquil assets (tqOne) </BaseText>
+          {config.subtitle ?? <BaseText style={{ fontSize: 14 }}>Burn depegged tokens such as 1USDC and 1ETH, get <LinkWrarpper href='https://explorer.harmony.one/address/0xBC594CABd205bD993e7FfA6F3e9ceA75c1110da5?activeTab=5' target='_blank'>new USD Coin</LinkWrarpper></BaseText>}
+          {config.tagline ?? <BaseText style={{ fontSize: 12, color: 'grey' }}><a href='https://burner-stats.modulo.so' target='_blank' rel='noreferrer'>Burner stats</a>  are now available. Now also supports Tranquil assets (tqOne) </BaseText>}
         </Desc>
         {address && <BaseText>Your address: {address}</BaseText>}
         {address &&
