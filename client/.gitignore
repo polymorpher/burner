@@ -1,6 +1,7 @@
 /dist
 /build.sh
 /deploy.sh
+/deploy.tq.sh
 .env
 .env.*
 *.env
