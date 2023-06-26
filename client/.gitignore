@@ -1,5 +1,7 @@
 /dist
 /build.sh
 /deploy.sh
-script.env
-accumulate.env
+.env
+.env.*
+*.env
+!.env.example

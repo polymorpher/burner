@@ -1,7 +1,4 @@
 node_modules
-.env
-*.env
-.env.*
 coverage
 coverage.json
 typechain
@@ -16,3 +13,8 @@ deployments
 docs
 data
 .openzeppelin
+
+.env
+.env.*
+*.env
+!.env.example
