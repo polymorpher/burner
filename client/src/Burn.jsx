@@ -154,7 +154,7 @@ const Burn = () => {
       return toast.error('You do not have sufficient asset to burn. Please adjust the amount')
     }
     if (selectedAsset.key.toLowerCase() === config.tq.tqOne) {
-      const allowed = client.getTqTransferAllowed({ assetAddress: selectedAsset.key, amountFormatted: burnAmountFormatted })
+      const allowed = await client.getTqTransferAllowed({ assetAddress: selectedAsset.key, amountFormatted: burnAmountFormatted })
       if (!allowed) {
         return toast.error('You have outstanding debt in Tranquil. Please close those positions first')
       }
