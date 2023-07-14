@@ -207,7 +207,7 @@ export const PlotLineBurnTxOverTime = ({ events, wallets, ...props }: ChartProps
       .map(([day, count]) => [Number(day), count]),
     e => e[0])
   let s = 0
-  const aggedCumu = agged.map(([day, v]) => [day * 86400 * 1000, (s += v)])
+  const aggedCumu = agged.map(([day, v]: [number, number]) => [day * 86400 * 1000, (s += v)])
   const options = {
     title: { text: 'Burn Transactions Over Time' },
     xAxis: [{
