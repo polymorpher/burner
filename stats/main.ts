@@ -19,6 +19,8 @@ const provider = new ethers.providers.StaticJsonRpcProvider(process.env.PROVIDER
 const CONTRACT_CONFIGS = JSON.parse(process.env.CONTRACT_CONFIGS ?? '[]') as ContractConfig[]
 const OUTPUT_PREFIX = process.env.OUTPUT_PREFIX ?? 'out'
 const MODE = process.env.MODE ?? 'events'
+const EXISTING_WALLET_FILE = process.env.EXISTING_WALLET_FILE ?? ''
+
 interface ContractConfig {
   address: string
   from: number
@@ -54,9 +56,18 @@ async function dumpWallets (): Promise<void> {
   const uniqUsers: string[] = uniq(users)
   console.debug(`Found ${uniqUsers.length} unique users out of ${users.length}`)
   const wallets: Wallet[] = []
+  const existingWallets = new Set<string>()
+  if (EXISTING_WALLET_FILE) {
+    const ws: Wallet[] = await csvtojson().fromFile(EXISTING_WALLET_FILE)
+    ws.forEach(w => existingWallets.add(w.address.toLowerCase()))
+  }
   for (const [i, u] of uniqUsers.entries()) {
     if (i % 50) {
-      console.debug(`...processed ${i} out of ${uniqUsers.length} unique users`)
+      console.debug(`...processing ${i + 1} out of ${uniqUsers.length} unique users`)
+    }
+    if (existingWallets.has(u.toLowerCase())) {
+      console.debug(`......skipped ${u} (already exists)`)
+      continue
     }
     const w: Wallet = await parseWallet(u, provider)
     wallets.push(w)
@@ -64,6 +75,7 @@ async function dumpWallets (): Promise<void> {
   const parser = new AsyncParser()
   const csv = await parser.parse(wallets).promise()
   await fs.writeFile(out, csv, { encoding: 'utf-8' })
+  console.log('all done')
 }
 
 async function main (): Promise<void> {

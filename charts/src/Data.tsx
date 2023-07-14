@@ -24,7 +24,7 @@ export const Rates = {
   '0xb1f6e61e1e113625593a22fa6aa94f8052bc39e0': 220,
   '0x0ab43550a6915f9f67d0c454c2e90385e6497eaa': 1,
   '0xeb6c08ccb4421b6088e581ce04fcfbed15893ac3': 1,
-  '0x34B9aa82D89AE04f0f546Ca5eC9C93eFE1288940': 0.00022
+  '0x34b9aa82d89ae04f0f546ca5ec9c93efe1288940': 0.00022
 }
 
 export const Decimals = {
@@ -38,12 +38,12 @@ export const Decimals = {
   '0xb1f6e61e1e113625593a22fa6aa94f8052bc39e0': 18,
   '0x0ab43550a6915f9f67d0c454c2e90385e6497eaa': 18,
   '0xeb6c08ccb4421b6088e581ce04fcfbed15893ac3': 18,
-  '0x34B9aa82D89AE04f0f546Ca5eC9C93eFE1288940': 8
+  '0x34b9aa82d89ae04f0f546ca5ec9c93efe1288940': 8
 }
 
 export const computeBurnAmount = (e: EventLog): number => {
   const decimals = Decimals[e.burned.toLowerCase()]
   const rate = Rates[e.burned.toLowerCase()]
-  const amount = Number(BigInt(e.burnedAmount) * BigInt(rate) * BigInt(100000) / (10n ** BigInt(decimals))) / 100000
+  const amount = Number(BigInt(e.burnedAmount) * BigInt(rate * 100000) / (10n ** BigInt(decimals))) / 100000
   return amount
 }

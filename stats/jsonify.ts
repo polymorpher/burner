@@ -8,8 +8,8 @@ async function main (): Promise<void> {
   const walletFile = `${OUTPUT_PREFIX}.wallets.csv`
   const eventLogs = await csvtojson().fromFile(eventLogsFile)
   const wallets = await csvtojson({ colParser: { isEoa: (e) => e === 'true', createdAt: e => Number(e) } }).fromFile(walletFile)
-  await fs.writeFile('events.json', JSON.stringify(eventLogs), { encoding: 'utf-8' })
-  await fs.writeFile('wallets.json', JSON.stringify(wallets), { encoding: 'utf-8' })
+  await fs.writeFile('./assets/events.json', JSON.stringify(eventLogs), { encoding: 'utf-8' })
+  await fs.writeFile('./assets/wallets.json', JSON.stringify(wallets), { encoding: 'utf-8' })
 }
 
 main().catch(ex => { console.error(ex) })

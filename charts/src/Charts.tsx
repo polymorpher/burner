@@ -7,6 +7,7 @@ import { type EventLog, type Wallet } from '../../stats/types'
 import sum from 'lodash-es/sum'
 import countBy from 'lodash-es/countBy'
 import sortBy from 'lodash-es/sortBy'
+import uniq from 'lodash-es/uniq'
 
 interface ChartProps {
   events: EventLog[]
@@ -69,7 +70,9 @@ export const DistStablecoinReceived = ({ events, wallets, ...props }: ChartProps
 export const DistWalletAge = ({ events, wallets, ...props }: ChartProps): React.FC => {
   const chartComponentRef = useRef<HighchartsReact.RefObject>(null)
   const now = Math.floor(Date.now() / 1000)
-  const agesInDays = wallets.map(e => (now - e.createdAt) / 86400)
+  const eventWallets = uniq(events.map(e => e.user))
+  const ageLookup = Object.fromEntries(wallets.map(w => [w.address.toLowerCase(), w.createdAt]))
+  const agesInDays = eventWallets.map(e => (now - ageLookup[e]) / 86400)
   const labeledData = countBy(agesInDays, (e: number) => {
     const n = Math.floor(e / 90)
     if (n >= 8) {
