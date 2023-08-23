@@ -2,6 +2,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { ethers } from 'hardhat'
 import config from '../config'
 import BN from 'bn.js'
+import { Burner } from '../typechain'
 const PRECISION_FACTOR = new BN(10).pow(new BN(18))
 const PARAMETER_PRECISION = 1e+9
 
@@ -45,7 +46,7 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
   const name = await stablecoinContract.name()
   const symbol = await stablecoinContract.symbol()
   console.log('Stablecoin stats:', { name, symbol, decimals })
-  const burner = await ethers.getContractAt('Burner', Burner.address)
+  const burner = await ethers.getContractAt('Burner', Burner.address) as Burner
   console.log('Burner deployed to:', burner.address)
   let tx, receipt
   tx = await burner.setStablecoinHolder(config.stablecoinHolder)
