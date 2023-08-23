@@ -1,5 +1,5 @@
-import { Wallets } from '../src/Data.tsx'
-import config from '../config.ts'
+import { Wallets } from '../src/Data'
+import config from '../config'
 import fs from 'fs/promises'
 const OUT = process.env.OUT ?? 'pre-recovery.wallets.json'
 async function printWallets (): Promise<void> {

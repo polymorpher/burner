@@ -7,7 +7,8 @@
   "scripts": {
     "debug": "NODE_OPTIONS=\"--loader ts-node/esm\" DEBUG=1 webpack serve --mode=development",
     "local": "NODE_OPTIONS=\"--loader ts-node/esm\" webpack serve --mode=development",
-    "build": "NODE_OPTIONS=\"--loader ts-node/esm\" webpack --config webpack.config.ts"
+    "build": "NODE_OPTIONS=\"--loader ts-node/esm\" webpack --config webpack.config.ts",
+    "print-wallets": "ts-node-esm scripts/printWallets.ts"
   },
   "devDependencies": {
     "@babel/core": "^7.18.9",

@@ -6,6 +6,7 @@
   "main": "main.ts",
   "scripts": {
     "start": "ts-node-esm ./main.ts",
+    "json": "ts-node-esm ./jsonify.ts",
     "debug": "DEBUG=true ts-node-esm ./main.ts"
   },
   "dependencies": {

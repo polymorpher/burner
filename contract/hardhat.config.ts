@@ -85,7 +85,7 @@ const hardhatUserconfig: HardhatUserConfig = {
     flat: true,
     spacing: 2,
     format: 'json',
-    only: [':Burner$']
+    only: [':Burner$', 'ERC20']
   }
 }
 
