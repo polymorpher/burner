@@ -1,10 +1,8 @@
 import _Events from '../assets/data/events.json' assert {
-        type: 'json',
-        integrity: 'sha384-ABC123'
+        type: 'json'
 }
 import _Wallets from '../assets/data/wallets.json' assert {
-        type: 'json',
-        integrity: 'sha384-ABC123'
+        type: 'json'
 }
 import { type EventLog, type Wallet } from '../../stats/types'
 

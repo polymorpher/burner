@@ -5,8 +5,8 @@
   "type": "module",
   "main": "main.ts",
   "scripts": {
-    "start": "ts-node-esm ./main.ts",
-    "json": "ts-node-esm ./jsonify.ts",
+    "start": "node --loader ts-node/esm ./main.ts",
+    "json": "node --loader ts-node/esm ./jsonify.ts",
     "debug": "DEBUG=true ts-node-esm ./main.ts"
   },
   "dependencies": {
@@ -29,6 +29,6 @@
     "eslint-plugin-n": "^15.0.0",
     "eslint-plugin-promise": "^6.0.0",
     "ts-node": "^10.9.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.2.2"
   }
 }

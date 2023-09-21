@@ -1,8 +1,7 @@
 import dotenv from 'dotenv'
 import { ethers } from 'ethers'
 import BurnerAbi from '../contract/abi/Burner.json' assert {
-        type: 'json',
-        integrity: 'sha384-ABC123'
+        type: 'json'
 }
 import { parseBlocks } from './events.ts'
 import { AsyncParser } from '@json2csv/node'
