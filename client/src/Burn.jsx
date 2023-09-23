@@ -433,7 +433,10 @@ const Burn = () => {
         </Col>
         <Desc>
           {config.subtitle ?? <BaseText style={{ fontSize: 14 }}>Burn depegged tokens such as 1USDC and 1ETH, get <LinkWrarpper href='https://explorer.harmony.one/address/0xBC594CABd205bD993e7FfA6F3e9ceA75c1110da5?activeTab=5' target='_blank'>new USD Coin</LinkWrarpper></BaseText>}
-          {config.tagline ?? <BaseText style={{ fontSize: 12, color: 'grey' }}><a href='https://burner-stats.modulo.so' target='_blank' rel='noreferrer'>Burner stats</a>  are now available. Now also supports Tranquil assets (tqOne) </BaseText>}
+          {config.tagline ??
+            <BaseText style={{ fontSize: 12, color: 'grey' }}>
+              <a href='https://burner-stats.modulo.so' target='_blank' rel='noreferrer'>Stats</a> and <a href='https://burner-tq.modulo.so' target='_blank' rel='noreferrer'>dedicated portal</a> for Tranquil assets (tqONE) are available.<br />
+            </BaseText>}
         </Desc>
         {address && <BaseText>Your address: {address}</BaseText>}
         {address &&
