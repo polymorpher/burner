@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node --loader ts-node/esm ./main.ts",
     "json": "node --loader ts-node/esm ./jsonify.ts",
-    "debug": "DEBUG=true ts-node-esm ./main.ts"
+    "debug": "DEBUG=true node --loader ts-node/esm ./main.ts"
   },
   "dependencies": {
     "@json2csv/node": "^7.0.1",
