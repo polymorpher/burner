@@ -41,9 +41,8 @@ const Debug = () => {
     }
     try {
       const ethAccounts = await provider.request({ method: 'eth_requestAccounts' })
-
       if (ethAccounts.length >= 2) {
-        return toast.info('Please connect using only one account')
+        toast.info('You connected the site using multiple accounts. Please make sure you switched to the right one in MetaMask')
       }
       const address = ethAccounts[0]
       setAddress(address)

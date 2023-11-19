@@ -7,6 +7,12 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments: { deploy }, getNamedAccounts } = hre
   const { deployer } = await getNamedAccounts()
   console.log(deployer)
+  const FakeWONE = await deploy('FakeWONE', {
+    from: deployer,
+    args: [ethers.utils.parseEther('10000000')],
+    log: true,
+    autoMine: true
+  })
   const FakeUSDC = await deploy('FakeUSDC', {
     from: deployer,
     args: [10000e+6],
@@ -25,9 +31,11 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
     log: true,
     autoMine: true
   })
+  const wone = await ethers.getContractAt('FakeWONE', FakeWONE.address)
   const usdc = await ethers.getContractAt('FakeUSDC', FakeUSDC.address)
   const usds = await ethers.getContractAt('FakeUSDS', FakeUSDS.address)
   const eth = await ethers.getContractAt('FakeETH', FakeETH.address)
+  console.log('FakeWONE deployed to:', wone.address)
   console.log('FakeUSDC deployed to:', usdc.address)
   console.log('FakeUSDS deployed to:', usds.address)
   console.log('FakeETH deployed to:', eth.address)
@@ -41,6 +49,9 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
   tx = await eth.transfer(process.env.ETH_HOLDER, ethers.utils.parseEther('10000'))
   receipt = await tx.wait()
   console.log(`Transfer 10000 ETH to holder - tx: ${tx.hash}`, JSON.stringify(receipt))
+  tx = await wone.transfer(process.env.WONE_HOLDER, ethers.utils.parseEther('10000000'))
+  receipt = await tx.wait()
+  console.log(`Transfer 10000 WONE to holder - tx: ${tx.hash}`, JSON.stringify(receipt))
 }
 f.tags = ['Mocks']
 export default f
