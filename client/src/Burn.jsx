@@ -90,7 +90,6 @@ const Burn = () => {
     }
     try {
       const ethAccounts = await provider.request({ method: 'eth_requestAccounts' })
-
       if (ethAccounts.length >= 2) {
         toast.info('You connected the site using multiple accounts. Please make sure you switched to the right one in MetaMask')
       }
@@ -190,7 +189,7 @@ const Burn = () => {
           toast.error(`Failed to burn. Error: ${(ex?.message || ex).toString()}`)
         },
         onSuccess: ({ totalAmountExchanged, burnedAmount, transactionHash }) => {
-          toast.success(`Burned ${burnedAmount} ${assetSymbol}. Received ${totalAmountExchanged} ${parameters.stablecoin.symbol}`)
+          toast.success(`Burned ${burnedAmount} ${assetSymbol}. Received ${totalAmountExchanged} ${parameters.stablecoin.symbol} equivalent of WONE at $${parameters.distributionToken.price.toFixed(5)}`)
           toast.success(
             <FlexRow>
               <BaseText style={{ marginRight: 8 }}>Done!</BaseText>
