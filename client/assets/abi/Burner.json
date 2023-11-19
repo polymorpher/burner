@@ -20,6 +20,16 @@
         "internalType": "uint256[]",
         "name": "exchangeRates",
         "type": "uint256[]"
+      },
+      {
+        "internalType": "address",
+        "name": "_distributionToken",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_distributionTokenValueRate",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -129,6 +139,32 @@
   {
     "inputs": [],
     "name": "baseRate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "distributionToken",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "distributionTokenValueRate",
     "outputs": [
       {
         "internalType": "uint256",

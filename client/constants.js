@@ -10,6 +10,7 @@ import TQONE from './assets/tokens/tranquil.svg'
 const debug = process.env.DEBUG
 
 export const DEAD_ADDRESS = '0x000000000000000000000000000000000000dead'
+export const EMPTY_ADDRESS = '0x0000000000000000000000000000000000000000'
 export const MAPPING = debug
   ? { '0x75Ec611271226b930e570A3B2324eB9FA316a94d': 'FUSDC', '0xF3ee4bc9678EBD6FfE6E91988D83903390f0A9d5': 'FETH' }
   : {

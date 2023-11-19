@@ -7,7 +7,7 @@ import Contract from 'web3-eth-contract'
 import BN from 'bn.js'
 import config from '../../config'
 import axios from 'axios'
-import { DEAD_ADDRESS } from '../../constants'
+import { DEAD_ADDRESS, EMPTY_ADDRESS } from '../../constants'
 const PRECISION_FACTOR = new BN(10).pow(new BN(18))
 const CLIENT_PRECISION = 1e+6
 const exp10BN = (decimals) => new BN(10).pow(new BN(decimals))
@@ -60,6 +60,8 @@ const apis = ({ web3, address }) => {
 
     getAllParameters: async () => {
       const perUserLimitAmountP = burnerContract.methods.perUserLimitAmount().call()
+      const distributionTokenP = burnerContract.methods.distributionToken().call()
+      const distributionTokenValueRateP = burnerContract.methods.distributionTokenValueRate().call()
       const minRateP = burnerContract.methods.minRate().call()
       const maxRateP = burnerContract.methods.maxRate().call()
       const baseRateP = burnerContract.methods.baseRate().call()
@@ -72,15 +74,28 @@ const apis = ({ web3, address }) => {
       const [
         perUserLimitAmount,
         minRate, maxRate, baseRate, lastResetTimestamp, stablecoin, stablecoinHolder, resetThresholdAmount, resetPeriod,
-        isShutdown
+        isShutdown,
+        distributionToken,
+        distributionTokenValueRate
       ] = await Promise.all([perUserLimitAmountP,
         minRateP, maxRateP, baseRateP, lastResetTimestampP, stablecoinP, stablecoinHolderP, resetThresholdAmountP, resetPeriodP,
-        isShutdownP])
+        isShutdownP, distributionTokenP, distributionTokenValueRateP])
       const tokenMetadata = new Contract(IERC20Metadata, stablecoin)
       const nameP = tokenMetadata.methods.name().call()
       const symbolP = tokenMetadata.methods.symbol().call()
       const decimalsP = tokenMetadata.methods.decimals().call()
       const [decimals, symbol, name] = await Promise.all([decimalsP, symbolP, nameP])
+      let distributedTokenDecimals = 0; let distributedTokenSymbol = 'N/A'; let distributedTokenName = 'N/A'
+      const hasDistributionToken = distributionToken !== EMPTY_ADDRESS
+      if (hasDistributionToken) {
+        const distributedTokenMetadata = new Contract(IERC20Metadata, distributionToken)
+        const distributedTokenNameP = distributedTokenMetadata.methods.name().call()
+        const distributedTokenSymbolP = distributedTokenMetadata.methods.symbol().call()
+        const distributedTokenDecimalsP = distributedTokenMetadata.methods.decimals().call()
+        // eslint-disable-next-line no-lone-blocks
+        { [distributedTokenDecimals, distributedTokenSymbol, distributedTokenName] = await Promise.all([distributedTokenDecimalsP, distributedTokenSymbolP, distributedTokenNameP]) }
+      }
+
       return {
         minRate: new BN(minRate).muln(CLIENT_PRECISION).div(PRECISION_FACTOR).toNumber() / CLIENT_PRECISION,
         maxRate: new BN(maxRate).muln(CLIENT_PRECISION).div(PRECISION_FACTOR).toNumber() / CLIENT_PRECISION,
@@ -96,7 +111,14 @@ const apis = ({ web3, address }) => {
         perUserLimitAmount: new BN(perUserLimitAmount).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION,
         resetThresholdAmount: new BN(resetThresholdAmount).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION,
         resetPeriod: parseInt(resetPeriod) * 1000,
-        isShutdown
+        isShutdown,
+        distributionToken: {
+          address: hasDistributionToken ? distributionToken : undefined,
+          name: distributedTokenName,
+          symbol: distributedTokenSymbol,
+          decimals: distributedTokenDecimals,
+          price: hasDistributionToken ? (exp10BN(distributedTokenDecimals - decimals).mul(PRECISION_FACTOR).mul(new BN(CLIENT_PRECISION)).div(new BN(distributionTokenValueRate)).toNumber() / CLIENT_PRECISION) : 1
+        },
       }
     },
 

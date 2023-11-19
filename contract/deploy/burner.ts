@@ -9,15 +9,17 @@ const PARAMETER_PRECISION = 1e+9
 const getMeta = async (address) => {
   const tokenMetadata = await ethers.getContractAt('IERC20Metadata', address)
   const symbol = await tokenMetadata.symbol()
+  const name = await tokenMetadata.name()
   const decimals = await tokenMetadata.decimals()
-  return { symbol, decimals }
+  return { name, symbol, decimals }
 }
 
 const exp10BN = n => new BN(10).pow(new BN(n))
 const f = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments: { deploy }, getNamedAccounts } = hre
   const { deployer } = await getNamedAccounts()
-  const { decimals: stableDecimals } = await getMeta(config.stablecoinAddress)
+  const { decimals: stableDecimals, symbol: stableSymbol, name: stableName } = await getMeta(config.stablecoinAddress)
+  console.log('Stablecoin stats:', { stableName, stableSymbol, stableDecimals })
   const tokenValueAmounts: string[] = []
   const tokenLabels: string[] = [] // for debugging
   const tokenAddresses: string[] = [] // for debugging
@@ -29,23 +31,28 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
     const amount = new BN(value * PARAMETER_PRECISION).mul(PRECISION_FACTOR).div(exp10BN(decimals)).mul(exp10BN(stableDecimals)).div(new BN(PARAMETER_PRECISION))
     tokenValueAmounts.push(amount.toString())
   }
+  let initDistributionTokenValueRate = new BN(0)
 
+  if (config.distributionToken) {
+    const { decimals, name, symbol } = await getMeta(config.distributionToken)
+    initDistributionTokenValueRate = exp10BN(decimals - stableDecimals).mul(new BN(1 / config.distributionTokenPrice * PARAMETER_PRECISION)).mul(PRECISION_FACTOR).div(new BN(PARAMETER_PRECISION))
+    console.log('initDistributionTokenValueRate', initDistributionTokenValueRate.toString())
+    console.log('distributionToken stats:', { name, symbol, decimals })
+  }
   const Burner = await deploy('Burner', {
     from: deployer,
     args: [
       config.stablecoinAddress,
       new BN(config.maxRate * PARAMETER_PRECISION).mul(PRECISION_FACTOR).div(new BN(PARAMETER_PRECISION)).toString(),
       tokenAddresses,
-      tokenValueAmounts
+      tokenValueAmounts,
+      config.distributionToken || ethers.constants.AddressZero,
+      initDistributionTokenValueRate.toString()
     ],
     log: true,
     autoMine: true
   })
-  const stablecoinContract = await ethers.getContractAt('IERC20Metadata', config.stablecoinAddress)
-  const decimals = await stablecoinContract.decimals()
-  const name = await stablecoinContract.name()
-  const symbol = await stablecoinContract.symbol()
-  console.log('Stablecoin stats:', { name, symbol, decimals })
+
   const burner = await ethers.getContractAt('Burner', Burner.address) as Burner
   console.log('Burner deployed to:', burner.address)
   let tx, receipt
@@ -54,9 +61,9 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Set stablecoin holder - tx: ${tx.hash}`, receipt)
   tx = await burner.setParameters(
     new BN(config.minRate * PARAMETER_PRECISION).mul(PRECISION_FACTOR).div(new BN(PARAMETER_PRECISION)).toString(),
-    new BN(config.resetThresholdAmount * PARAMETER_PRECISION).mul(new BN(10).pow(new BN(decimals))).div(new BN(PARAMETER_PRECISION)).toString(),
+    new BN(config.resetThresholdAmount * PARAMETER_PRECISION).mul(new BN(10).pow(new BN(stableDecimals))).div(new BN(PARAMETER_PRECISION)).toString(),
     config.resetPeriod,
-    new BN(config.perUserLimitAmount * PARAMETER_PRECISION).mul(new BN(10).pow(new BN(decimals))).div(new BN(PARAMETER_PRECISION)).toString()
+    new BN(config.perUserLimitAmount * PARAMETER_PRECISION).mul(new BN(10).pow(new BN(stableDecimals))).div(new BN(PARAMETER_PRECISION)).toString()
   )
   receipt = await tx.wait()
   console.log(`Set parameters - tx: ${tx.hash}`, receipt)
@@ -72,7 +79,8 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
   const resetPeriod = await burner.resetPeriod()
   const isShutdown = await burner.isShutdown()
   const tokenValueRates = (await Promise.all(tokenAddresses.map(k => burner.tokenValueRate(k)))).map(e => e.toString())
-
+  const distributionToken = await burner.distributionToken()
+  const distributionTokenValueRate = await burner.distributionTokenValueRate()
   const displayObj = {
     perUserLimitAmount,
     minRate,
@@ -81,6 +89,8 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
     lastResetTimestamp,
     stablecoin,
     stablecoinHolder,
+    distributionToken,
+    distributionTokenValueRate,
     resetThresholdAmount,
     resetPeriod,
     isShutdown,

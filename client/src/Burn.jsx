@@ -7,7 +7,7 @@ import { BaseText, Desc, DescLeft, SmallText, Title } from './components/Text'
 import { Col, FlexColumn, FlexRow, Main, Modal, Row } from './components/Layout'
 import styled from 'styled-components'
 import { MAPPING, ICONS } from '../constants'
-import USDC from '../assets/tokens/usdc.svg'
+import HarmonySVG from '../assets/tokens/harmony.svg'
 import { toast } from 'react-toastify'
 import apis, { getBaseStats } from './api'
 import { TailSpin } from 'react-loading-icons'
@@ -38,7 +38,8 @@ const Burn = () => {
   const [address, setAddress] = useState()
   const [inputValue, setInputvalue] = useState(0)
   const [inputError, setInputError] = useState('')
-  const [outputvalue, setOutputValue] = useState(0)
+  const [outputValue, setOutputValue] = useState(0)
+  const [usdOutputValue, setUsdOutputValue] = useState(0)
   const [parameters, setParameters] = useState({ initializing: true })
   const [exchangeRate, setExchangeRate] = useState(0)
   const [assetValueRate, setAssetValueRate] = useState(1)
@@ -54,6 +55,7 @@ const Burn = () => {
   const [userBalanceFormatted, setUserBalanceFormatted] = useState(0)
   const [userStablecoinBalanceFormatted, setUserStablecoinBalanceFormatted] = useState(0)
   const [treasuryBalanceFormatted, setTreasuryBalanceFormatted] = useState(0)
+  const [distributionTokenBalanceFormatted, setDistributionTokenBalanceFormatted] = useState(0)
   const [assetSymbol, setAssetSymbol] = useState(null)
   const [updatingExchangeRate, setUpdatingExchangeRate] = useState(false)
   const [burning, setBurning] = useState(false)
@@ -90,7 +92,7 @@ const Burn = () => {
       const ethAccounts = await provider.request({ method: 'eth_requestAccounts' })
 
       if (ethAccounts.length >= 2) {
-        return toast.info('Please connect using only one account')
+        toast.info('You connected the site using multiple accounts. Please make sure you switched to the right one in MetaMask')
       }
       const address = ethAccounts[0]
       setAddress(address)
@@ -214,11 +216,15 @@ const Burn = () => {
 
   const onInputChange = ({ target: { value } }) => {
     setInputvalue(value)
-    setOutputValue(value * exchangeRate * assetValueRate)
+    const usdOutput = inputValue * exchangeRate * assetValueRate
+    setUsdOutputValue(usdOutput)
+    setOutputValue(usdOutput / parameters.distributionToken.price)
   }
   const onOutputChange = ({ target: { value } }) => {
     setOutputValue(value)
-    setInputvalue(value / exchangeRate / assetValueRate)
+    const usdOutput = value * parameters.distributionToken.price
+    setUsdOutputValue(usdOutput)
+    setInputvalue(usdOutput / exchangeRate / assetValueRate)
   }
 
   useEffect(() => {
@@ -229,11 +235,15 @@ const Burn = () => {
       const baseStats = await getBaseStats()
       const newStats = { totalBurned: { ...baseStats.totalBurned }, totalStablecoinDisbursed: { ...baseStats.totalStablecoinDisbursed }, time: Math.max(baseStats.time, Math.floor(Date.now() / 1000)) }
       const disbursed = await client.getTotalExchanged()
-      const [stablecoinSymbol, stablecoinAmountFormatted] = Object.entries(disbursed)[0]
+      let [currentDisbursedSymbol, currentDisbursedAmountFormatted] = Object.entries(disbursed)[0]
+      if (parameters.distributionToken?.address) {
+        currentDisbursedSymbol = parameters.distributionToken.symbol
+        currentDisbursedAmountFormatted = Number(currentDisbursedAmountFormatted) / parameters.distributionToken.price
+      }
       // console.log({ stablecoinSymbol, stablecoinAmountFormatted })
       let localAggValue = 0
       let localTotalAggValue = 0
-      newStats.totalStablecoinDisbursed[stablecoinSymbol] = (newStats.totalStablecoinDisbursed[stablecoinSymbol] || 0) + stablecoinAmountFormatted
+      newStats.totalStablecoinDisbursed[currentDisbursedSymbol] = (newStats.totalStablecoinDisbursed[currentDisbursedSymbol] || 0) + currentDisbursedAmountFormatted
       const burnedAmounts = await Promise.all(config.supportedAssets.map(a => client.getTotalBurned({ assetAddress: a })))
       for (const [i, a] of config.supportedAssets.entries()) {
         const burned = burnedAmounts[i]
@@ -288,7 +298,9 @@ const Burn = () => {
     if (!inputValue) {
       return
     }
-    setOutputValue(inputValue * exchangeRate * assetValueRate)
+    const usdOutput = inputValue * exchangeRate * assetValueRate
+    setUsdOutputValue(usdOutput)
+    setOutputValue(usdOutput / parameters.distributionToken.price)
   }, [exchangeRate])
 
   useEffect(() => {
@@ -338,6 +350,12 @@ const Burn = () => {
       return
     }
     client.getERC20Balance({ assetAddress: parameters.stablecoin.address, from: parameters.stablecoinHolder }).then(({ formatted }) => setTreasuryBalanceFormatted(formatted))
+    if (parameters.distributionToken?.address) {
+      client.getERC20Balance({ assetAddress: parameters.distributionToken.address, from: parameters.stablecoinHolder }).then(({ formatted }) => {
+        setDistributionTokenBalanceFormatted(formatted)
+        console.log('formatted', formatted)
+      })
+    }
   }, [client, parameters?.stablecoin?.address, parameters?.stablecoinHolder])
 
   useEffect(() => {
@@ -432,7 +450,11 @@ const Burn = () => {
           <BaseText style={{ fontSize: 12, color: 'grey', transform: 'translateX(128px)' }}>by <LinkWrarpper href='https://modulo.so' target='_blank' style={{ color: 'grey' }}>modulo.so</LinkWrarpper></BaseText>
         </Col>
         <Desc>
-          {config.subtitle ?? <BaseText style={{ fontSize: 14 }}>Burn depegged tokens such as 1USDC and 1ETH, get <LinkWrarpper href='https://explorer.harmony.one/address/0xBC594CABd205bD993e7FfA6F3e9ceA75c1110da5?activeTab=5' target='_blank'>new USD Coin</LinkWrarpper></BaseText>}
+          {config.subtitle ?? (
+            <BaseText style={{ fontSize: 14 }}>
+              Burn depegged tokens such as 1USDC and 1ETH, get <LinkWrarpper href='https://explorer.harmony.one/address/0xcf664087a5bb0237a0bad6742852ec6c8d69a27a?activeTab=6' target='_blank'>WONE</LinkWrarpper>
+            </BaseText>
+          )}
           {config.tagline ??
             <BaseText style={{ fontSize: 12, color: 'grey' }}>
               <a href='https://burner-stats.modulo.so' target='_blank' rel='noreferrer'>Stats</a> and <a href='https://burner-tq.modulo.so' target='_blank' rel='noreferrer'>dedicated portal</a> for Tranquil assets (tqONE) are available.<br />
@@ -452,7 +474,7 @@ const Burn = () => {
                   }} style={{ marginLeft: 16, minWidth: 80 }}
                 >{selectedAsset.label}
                 </LinkWrarpper>
-                <Input disabled={!exchangeRate} $margin='8px' style={{ marginLeft: 24, marginRight: 8 }} value={inputValue} onChange={onInputChange} />
+                <Input disabled={!exchangeRate} $margin='8px' style={{ marginLeft: 24, marginRight: 8 }} value={inputValue} onChange={onInputChange} onBlur={onInputChange} />
                 {!exchangeRate && <TailSpin stroke='grey' width={16} height={16} />}
                 {inputError ? <FloatingText $color='red'>{inputError}</FloatingText> : <></>}
               </Row>
@@ -460,10 +482,13 @@ const Burn = () => {
             <Col>
               <Label>get</Label>
               <Row style={{ gap: 0 }}>
-                <IconImg src={USDC} />
-                <BaseText style={{ marginLeft: 16, minWidth: 80 }}>USD Coin</BaseText>
-                <Input disabled={!exchangeRate} $margin='8px' style={{ marginLeft: 24, marginRight: 8 }} value={outputvalue} onChange={onOutputChange} />
+                <IconImg src={HarmonySVG} />
+                <BaseText style={{ marginLeft: 16, minWidth: 80 }}>WONE</BaseText>
+                <Input disabled={!exchangeRate} $margin='8px' style={{ marginLeft: 24, marginRight: 8 }} value={outputValue} onChange={onOutputChange} />
                 {!exchangeRate && <TailSpin stroke='grey' width={16} height={16} />}
+              </Row>
+              <Row>
+                <SmallText style={{ color: 'grey' }}>approx. ${usdOutputValue.toFixed(3)} at the rate of ${parameters.distributionToken?.price ?? '...'} per WONE</SmallText>
               </Row>
             </Col>
             <Row style={{ justifyContent: 'center' }}>
@@ -493,7 +518,6 @@ const Burn = () => {
             <Row style={{ alignItems: 'start' }}>
               <Label style={{ width: 128 }}>total burned</Label>
               <Col>
-
                 {Object.entries(stats.totalBurned).map(([symbol, amountFormatted], i) => {
                   // return amountFormatted > 0 ? <React.Fragment key={symbol}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></React.Fragment> : <></>
                   return <Row key={symbol} style={{ whiteSpace: 'nowrap' }}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></Row>
@@ -508,11 +532,13 @@ const Burn = () => {
               <Label>total value burned (all rounds)</Label>
               <BaseText>{(totalAggValue || 0).toFixed(3)}</BaseText> <Label>USD</Label>
             </Row>
-            <Row>
-              <Label>total disbursed</Label>
-              {Object.entries(stats.totalStablecoinDisbursed).map(([symbol, amountFormatted]) => {
-                return <React.Fragment key={symbol}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></React.Fragment>
-              })}
+            <Row style={{ alignItems: 'start' }}>
+              <Label style={{ whiteSpace: 'nowrap' }}>total disbursed</Label>
+              <Col>
+                {Object.entries(stats.totalStablecoinDisbursed).map(([symbol, amountFormatted]) => {
+                  return <Row key={symbol} style={{ whiteSpace: 'nowrap' }}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></Row>
+                })}
+              </Col>
             </Row>
             <Row>
               <Label>last update time</Label>
@@ -564,7 +590,9 @@ const Burn = () => {
             </Row>
             <Row>
               <Label>recovery fund balance</Label>
-              <BaseText>{treasuryBalanceFormatted.toFixed(2)} USD Coin</BaseText>
+              {(parameters.distributionToken?.address)
+                ? <BaseText>{distributionTokenBalanceFormatted.toFixed(2)} WONE</BaseText>
+                : <BaseText>{treasuryBalanceFormatted.toFixed(2)} USD Coin</BaseText>}
             </Row>
             <Row>
               <Label>burner contract</Label>
