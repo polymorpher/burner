@@ -27,6 +27,8 @@ contract Burner is Pausable, Ownable {
 
     address public stablecoin; // the contract address of the new stablecoin which the user would get. The intended value is USDS (at address 0x471f66F75af9238A2FA23bA23862B5957109fB21). Here in comments, we use "new stablecoin" and stablecoin interchangeably most of the time. Sometimes we also use the term referring to some depegged tokens which used to be stablecoins before the hack, but we would explicitly state so and clarify.
     address public stablecoinHolder; // the address of the wallet which holds the stablecoin. The address should approve this contract's address up to a sufficient amount, so that this contract can send the stablecoin on behalf of the `stablecoinHolder` wallet to users
+    address public distributionToken; // if set, send this token to users in lieu of stablecoin from stablecoinHolder
+    uint256 public distributionTokenValueRate; // The value represents the rate for each 1 fractional unit of stablecoin, how many fractional unit of distributionToken should be sent, multiplied by PRECISION_FACTOR. If distributionToken is WONE (0xcF664087a5bB0237a0BAd6742852ec6c8d69A27a) which has 18-decimals, and the price of WONE is $0.015 per WONE, and stablecoin is USDC, which has 6-decimals, then distributionTokenValueRate should be 1e+18 / 0.015 / 1e+6 * 1e+18 = 6.67e+31. To see that, note the invariant a * (V / C) = b where V is distributionTokenValueRate, C is PRECISION_FACTOR, a is the number of fractional units of stablecoin, and b is the number of fractional units of distributionToken. We know that in the WONE (p = $0.015) and USDC scenario above, 1e+6 * (V / C) = (1 / p) * 1e+18, hence V = (1 / p) * 1e+18 / 1e+6 * C = 1e+12 / p * 1e+18 = ~6.67e+31
 
     uint256 public resetThresholdAmount; // The number of stablecoins (in fractional-units) cumulatively received by the users to trigger a "reset event". A "reset event" would result in the current exchange rate to be decreased to minRate. When any user burns their ERC20 tokens, they could receive some stablecoins, thereby contribute towards the reset threshold. Note that the current exchange rate linearly decreases proportionally to the ratio of `#stablecoins received by the user / reset threshold` no matter whether the reset threshold is reached. For example, if we want to trigger a reset event at the threshold of 250 USDS (which has 6 decimals), then resetThresholdAmount is 2.5e+8
     uint256 public resetPeriod = 3 hours; // as time elapses after each reset, the exchange rate linearly increases over time, proportional to the ratio of `time elapsed / resetPeriod`
@@ -53,12 +55,14 @@ contract Burner is Pausable, Ownable {
         _;
     }
 
-    constructor (address _stablecoin, uint256 _maxRate, address[] memory tokenAddresses, uint256[] memory exchangeRates) {
+    constructor (address _stablecoin, uint256 _maxRate, address[] memory tokenAddresses, uint256[] memory exchangeRates, address _distributionToken, uint256 _distributionTokenValueRate) {
         stablecoin = _stablecoin;
         maxRate = _maxRate;
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
             tokenValueRate[tokenAddresses[i]] = exchangeRates[i];
         }
+        distributionToken = _distributionToken;
+        distributionTokenValueRate = _distributionTokenValueRate;
     }
 
 
@@ -148,7 +152,12 @@ contract Burner is Pausable, Ownable {
         } else {
             IERC20Burnable(_asset).burnFrom(msg.sender, _burnAmount);
         }
-        IERC20(stablecoin).transferFrom(stablecoinHolder, msg.sender, totalAmountExchanged);
+        if (distributionToken != address(0)) {
+            uint256 distributionTokenAmount = totalAmountExchanged * distributionTokenValueRate / PRECISION_FACTOR;
+            IERC20(distributionToken).transferFrom(stablecoinHolder, msg.sender, distributionTokenAmount);
+        } else {
+            IERC20(stablecoin).transferFrom(stablecoinHolder, msg.sender, totalAmountExchanged);
+        }
         emit Burned(msg.sender, _asset, stablecoin, _burnAmount, totalAmountExchanged);
     }
 
