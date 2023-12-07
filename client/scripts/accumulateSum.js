@@ -53,14 +53,14 @@ async function main () {
   newStats.totalStablecoinDisbursed[stableMeta.symbol] = (newStats.totalStablecoinDisbursed[stableMeta.symbol] || 0) + new BN(disbursed).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(stableMeta.decimals))).toNumber() / CLIENT_PRECISION
   for (const [address, amount] of Object.entries(burned)) {
     const symbol = MAPPING[address]
-    console.log('processing', { symbol, amount, address })
     if (new BN(amount).eqn(0)) {
-      console.log('skipped')
+      console.log(`skipped ${symbol} since burned amount is 0`)
       continue
     }
-
     const meta = await getMeta(address)
-    newStats.totalBurned[symbol] = (newStats.totalBurned[symbol] || 0) + new BN(amount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(meta.decimals))).toNumber() / CLIENT_PRECISION
+    const amountFormatted = new BN(amount).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(meta.decimals))).toNumber() / CLIENT_PRECISION
+    console.log('processing', { symbol, amount, address, amountFormatted })
+    newStats.totalBurned[symbol] = (newStats.totalBurned[symbol] || 0) + amountFormatted
   }
   console.log(newStats)
   await fs.writeFile(statsFilename, JSON.stringify(newStats), { encoding: 'utf-8' })
