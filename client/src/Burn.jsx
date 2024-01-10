@@ -466,6 +466,7 @@ const Burn = () => {
               <a href='https://burner-stats.modulo.so' target='_blank' rel='noreferrer'>Stats</a> and <a href='https://burner-tq.modulo.so' target='_blank' rel='noreferrer'>dedicated portal</a> for Tranquil assets (tqONE) are available.<br />
             </BaseText>}
         </Desc>
+        {parameters?.distributionToken?.approvedAmount !== undefined && parameters.distributionToken.approvedAmount === 0 && <Title style={{ margin: 0 }}>round has NOT YET started</Title>}
         {address && <BaseText>Your address: {address}</BaseText>}
         {address &&
           <FlexColumn style={{ gap: 32 }}>
@@ -605,6 +606,12 @@ const Burn = () => {
               {(parameters.distributionToken?.address)
                 ? <BaseText>{distributionTokenBalanceFormatted.toFixed(2)} WONE</BaseText>
                 : <BaseText>{treasuryBalanceFormatted.toFixed(2)} USD Coin</BaseText>}
+            </Row>
+            <Row>
+              <Label>burner authorized amount</Label>
+              {(parameters.distributionToken?.address)
+                ? <BaseText>{parameters.distributionToken.approvedAmount} WONE</BaseText>
+                : <BaseText>N/A USD Coin</BaseText>}
             </Row>
             <Row>
               <Label>burner contract</Label>

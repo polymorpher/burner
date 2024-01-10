@@ -30,7 +30,7 @@ const config = {
     tqOne: process.env.TQ_ONE || ''
   },
   statsPath: process.env.STATS_PATH ?? '/stats',
-  title: process.env.TITLE ?? 'HARMONY RECOVERY PORTAL V6',
+  title: process.env.TITLE ?? 'HARMONY RECOVERY PORTAL V7',
   subtitle: process.env.SUBTITLE,
   tagline: process.env.TAGLINE,
 }

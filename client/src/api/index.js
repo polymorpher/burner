@@ -17,7 +17,7 @@ const apis = ({ web3, address }) => {
   }
   Contract.setProvider(web3.currentProvider)
   const burnerContract = new Contract(Burner, config.burnerContract)
-  return {
+  const tools = {
     address,
     web3,
     getTotalBurned: async ({ assetAddress }) => {
@@ -85,15 +85,16 @@ const apis = ({ web3, address }) => {
       const symbolP = tokenMetadata.methods.symbol().call()
       const decimalsP = tokenMetadata.methods.decimals().call()
       const [decimals, symbol, name] = await Promise.all([decimalsP, symbolP, nameP])
-      let distributedTokenDecimals = 0; let distributedTokenSymbol = 'N/A'; let distributedTokenName = 'N/A'
+      let distributedTokenDecimals = 0; let distributedTokenSymbol = 'N/A'; let distributedTokenName = 'N/A'; let distributionTokenApprvalAmount = 'N/A'
       const hasDistributionToken = distributionToken !== EMPTY_ADDRESS
       if (hasDistributionToken) {
         const distributedTokenMetadata = new Contract(IERC20Metadata, distributionToken)
         const distributedTokenNameP = distributedTokenMetadata.methods.name().call()
         const distributedTokenSymbolP = distributedTokenMetadata.methods.symbol().call()
         const distributedTokenDecimalsP = distributedTokenMetadata.methods.decimals().call()
+        const distributionTokenApprvalAmountP = tools._getDistributionTokenApprvalAmount()
         // eslint-disable-next-line no-lone-blocks
-        { [distributedTokenDecimals, distributedTokenSymbol, distributedTokenName] = await Promise.all([distributedTokenDecimalsP, distributedTokenSymbolP, distributedTokenNameP]) }
+        { [distributedTokenDecimals, distributedTokenSymbol, distributedTokenName, distributionTokenApprvalAmount] = await Promise.all([distributedTokenDecimalsP, distributedTokenSymbolP, distributedTokenNameP, distributionTokenApprvalAmountP]) }
       }
 
       return {
@@ -113,6 +114,7 @@ const apis = ({ web3, address }) => {
         resetPeriod: parseInt(resetPeriod) * 1000,
         isShutdown,
         distributionToken: {
+          approvedAmount: distributionTokenApprvalAmount,
           address: hasDistributionToken ? distributionToken : undefined,
           name: distributedTokenName,
           symbol: distributedTokenSymbol,
@@ -259,6 +261,15 @@ const apis = ({ web3, address }) => {
       const allowance = await stablecoinContract.methods.allowance(stablecoinHolder, config.burnerContract).call()
       return new BN(allowance).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION
     },
+    _getDistributionTokenApprvalAmount: async () => {
+      const distributionToken = await burnerContract.methods.distributionToken().call()
+      const stablecoinHolder = await burnerContract.methods.stablecoinHolder().call()
+      const stablecoinContract = new Contract(IERC20, distributionToken)
+      const stablecoinMetadata = new Contract(IERC20Metadata, distributionToken)
+      const decimals = await stablecoinMetadata.methods.decimals().call()
+      const allowance = await stablecoinContract.methods.allowance(stablecoinHolder, config.burnerContract).call()
+      return new BN(allowance).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION
+    },
     _getFakeAsset: async ({ assetAddress, amountFormatted }) => {
       const fakeAssetContract = new Contract(IFakeAsset, assetAddress)
       const fakeAssetMetadata = new Contract(IERC20Metadata, assetAddress)
@@ -269,6 +280,7 @@ const apis = ({ web3, address }) => {
       return fakeAssetContract.methods.mint(address, amount).send({ from: address })
     }
   }
+  return tools
 }
 if (window) {
   window.apis = apis
