@@ -232,12 +232,19 @@ const Burn = () => {
     }
     async function refreshStats () {
       const baseStats = await getBaseStats()
-      const newStats = { totalBurned: { ...baseStats.totalBurned }, totalStablecoinDisbursed: { ...baseStats.totalStablecoinDisbursed }, time: Math.max(baseStats.time, Math.floor(Date.now() / 1000)) }
+      const newStats = {
+        totalBurned: { ...baseStats.totalBurned },
+        totalStablecoinDisbursed: { ...baseStats.totalStablecoinDisbursed },
+        distributionTokenDisbursed: { ...baseStats.distributionTokenDisbursed },
+        time: Math.max(baseStats.time, Math.floor(Date.now() / 1000))
+      }
       const disbursed = await client.getTotalExchanged()
       let [currentDisbursedSymbol, currentDisbursedAmountFormatted] = Object.entries(disbursed)[0]
       if (parameters.distributionToken?.address) {
-        currentDisbursedSymbol = parameters.distributionToken.symbol
-        currentDisbursedAmountFormatted = Number(currentDisbursedAmountFormatted) / parameters.distributionToken.price
+        currentDisbursedSymbol = 'OTHERS' // parameters.distributionToken.symbol
+        const distributionTokenDisbursedAmountFormatted = Number(currentDisbursedAmountFormatted) / parameters.distributionToken.price
+        currentDisbursedAmountFormatted = Number(currentDisbursedAmountFormatted)
+        newStats.distributionTokenDisbursed[parameters.distributionToken.symbol] = (newStats.distributionTokenDisbursed[parameters.distributionToken.symbol] || 0) + distributionTokenDisbursedAmountFormatted
       }
       // console.log({ stablecoinSymbol, stablecoinAmountFormatted })
       let localAggValue = 0
@@ -538,6 +545,12 @@ const Burn = () => {
                   return <Row key={symbol} style={{ whiteSpace: 'nowrap' }}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></Row>
                 })}
               </Col>
+            </Row>
+            <Row style={{ alignItems: 'start' }}>
+              <Label style={{ whiteSpace: 'nowrap' }}>"others" converted from</Label>
+              {Object.entries(stats.distributionTokenDisbursed).map(([symbol, amountFormatted]) => {
+                return <Row key={symbol} style={{ whiteSpace: 'nowrap' }}><BaseText>{(amountFormatted || 0).toFixed(3)}</BaseText> <Label>{symbol}</Label></Row>
+              })}
             </Row>
             <Row>
               <Label>last update time</Label>

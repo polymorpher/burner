@@ -68,6 +68,7 @@ const PercentileDisplay = ({ report, title, desc, decimals = 2, transformer = v 
 }
 
 const ROUND_CONTRACTS = {
+  14: '0xc9aFd7b4f658EA3B56bCA685C66F5Ed2eB018BF4'.toLowerCase(),
   13: '0x6Cffea1d811d96C52750D23D9f49B3868F036E8B'.toLowerCase(),
   12: '0x4684C204DD149C679B4ABfF3A4e7d19C34a4EDE4'.toLowerCase(),
   11: '0x8Ba8fa550861fCA4615a82E2bc9cf9C197Cd54ec'.toLowerCase(),
@@ -139,6 +140,7 @@ const Home = (): React.FC => {
       <Button $selected={round === '11'} onClick={redirect(11)}>Rd 11</Button>
       <Button $selected={round === '12'} onClick={redirect(12)}>Rd 12</Button>
       <Button $selected={round === '13'} onClick={redirect(13)}>Rd 13</Button>
+      <Button $selected={round === '14'} onClick={redirect(14)}>Rd 14</Button>
     </Row>
     <div style={{ padding: 16 }}/>
     <KeyValueDisplay title={'Stablecoin Received Per Wallet Group'} desc={'Wallets are divided into three groups: (1) pre-hacked, those wallets created before the time when the bridge hack took place (2022-06-23T11:06:46.000Z); (2) pre-recovery, meaning those wallets created within 100 days after the time of the bridge hack; and (3) post-recovery, covering all the rest of the wallets'} kv={metrics.StablecoinReceivedPerGroup}/>

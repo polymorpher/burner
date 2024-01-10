@@ -10,7 +10,9 @@ require('dotenv').config({ path: 'accumulate.env' })
 const web3 = new Web3(process.env.PROVIDER)
 const burnerContract = process.env.BURNER_CONTRACT
 const statsFilename = process.env.STATS_FILE
+const PRECISION_FACTOR = new BN(10).pow(new BN(18))
 Contract.setProvider(web3)
+const exp10BN = n => new BN(10).pow(new BN(n))
 
 const MAPPING = {
   '0x985458E523dB3d53125813eD68c274899e9DfAb4': '1USDC',
@@ -35,6 +37,21 @@ const getMeta = async (address) => {
   return { symbol, decimals }
 }
 
+const tryGetDistributionTokenData = async (burner, stableDecimals) => {
+  let rate
+  try {
+    rate = await burner.methods.distributionTokenValueRate().call()
+    const dt = await burner.methods.distributionToken().call()
+    const { symbol, decimals } = await getMeta(dt)
+    const price = CLIENT_PRECISION / new BN(rate).muln(CLIENT_PRECISION).div(PRECISION_FACTOR).div(exp10BN(decimals - stableDecimals)).toNumber()
+    console.log(`Distribution token=${symbol}, decimals=${decimals}, price=${price}`)
+    return { price, symbol }
+  } catch (ex) {
+    console.error('Cannot get distribution token price', ex)
+    return undefined
+  }
+}
+
 async function main () {
   const stats = JSON.parse(await fs.readFile(statsFilename, { encoding: 'utf-8' }))
   console.log('baseStats', stats)
@@ -49,8 +66,11 @@ async function main () {
   console.log('disbursed', disbursed)
   const burned = Object.fromEntries(await Promise.all(Object.keys(MAPPING).map(k => contract.methods.totalBurned(k).call().then(v => [k, v]))))
   console.log('burned', burned)
-  const newStats = { totalBurned: { ...stats.totalBurned }, totalStablecoinDisbursed: { ...stats.totalStablecoinDisbursed }, time: Math.floor(Date.now() / 1000) }
-  newStats.totalStablecoinDisbursed[stableMeta.symbol] = (newStats.totalStablecoinDisbursed[stableMeta.symbol] || 0) + new BN(disbursed).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(stableMeta.decimals))).toNumber() / CLIENT_PRECISION
+  const newStats = { totalBurned: { ...stats.totalBurned }, totalStablecoinDisbursed: { ...stats.totalStablecoinDisbursed }, time: Math.floor(Date.now() / 1000), distributionTokenDisbursed: { ...stats.distributionTokenDisbursed } }
+  const newStableDisbursed = new BN(disbursed).muln(CLIENT_PRECISION).div(new BN(10).pow(new BN(stableMeta.decimals))).toNumber() / CLIENT_PRECISION
+  const distributionTokenData = await tryGetDistributionTokenData(contract, stableMeta.decimals)
+  const stableSymbol = distributionTokenData ? 'OTHERS' : stableMeta.symbol
+  newStats.totalStablecoinDisbursed[stableSymbol] = (newStats.totalStablecoinDisbursed[stableSymbol] || 0) + newStableDisbursed
   for (const [address, amount] of Object.entries(burned)) {
     const symbol = MAPPING[address]
     if (new BN(amount).eqn(0)) {
@@ -62,6 +82,13 @@ async function main () {
     console.log('processing', { symbol, amount, address, amountFormatted })
     newStats.totalBurned[symbol] = (newStats.totalBurned[symbol] || 0) + amountFormatted
   }
+
+  if (distributionTokenData) {
+    const { price, symbol: distributionTokenSymbol } = distributionTokenData
+    const amountDistributed = newStableDisbursed / price
+    newStats.distributionTokenDisbursed[distributionTokenSymbol] = (newStats.distributionTokenDisbursed[distributionTokenSymbol] || 0) + amountDistributed
+  }
+
   console.log(newStats)
   await fs.writeFile(statsFilename, JSON.stringify(newStats), { encoding: 'utf-8' })
   console.log('all done')
