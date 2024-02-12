@@ -68,6 +68,9 @@ const PercentileDisplay = ({ report, title, desc, decimals = 2, transformer = v 
 }
 
 const ROUND_CONTRACTS = {
+  16.3: '0x24E4F1f87A53FeC0EE05f5e392332d55b97A2FF6'.toLowerCase(),
+  16.2: '0x161aBCDE65c76Ae3489A0732386b0e5041334261'.toLowerCase(),
+  16.1: '0x7a2D7513f5fCaaD2cf2e3438CbCb786474d9fE4D'.toLowerCase(),
   14: '0xc9aFd7b4f658EA3B56bCA685C66F5Ed2eB018BF4'.toLowerCase(),
   13: '0x6Cffea1d811d96C52750D23D9f49B3868F036E8B'.toLowerCase(),
   12: '0x4684C204DD149C679B4ABfF3A4e7d19C34a4EDE4'.toLowerCase(),
@@ -96,6 +99,10 @@ const getRoundContract = (round): null | string => {
   }
   return ROUND_CONTRACTS[round.toString()] ?? null
 }
+
+const RButton = styled(Button)`
+  width: 80px;
+`
 
 const Home = (): React.FC => {
   const [round, setRound] = useState(getSelectedRound())
@@ -129,20 +136,23 @@ const Home = (): React.FC => {
     history.pushState({}, '', `/${r}`)
   }
   return <Container>
-    <Row style={{ width: '100%', justifyContent: 'space-between', flexWrap: 'wrap', position: 'fixed', maxWidth: 900, zIndex: 10, background: '#fff', padding: 16 }}>
-      <Button $selected={!contractFilter} onClick={redirect('')}>ALL</Button>
-      <Button $selected={round === '5'} onClick={redirect(5)}>Rd 5</Button>
-      <Button $selected={round === '6'} onClick={redirect(6)}>Rd 6</Button>
-      <Button $selected={round === '7'} onClick={redirect(7)}>Rd 7</Button>
-      <Button $selected={round === '8'} onClick={redirect(8)}>Rd 8</Button>
-      <Button $selected={round === '9'} onClick={redirect(9)}>Rd 9</Button>
-      <Button $selected={round === '10'} onClick={redirect(10)}>Rd 10</Button>
-      <Button $selected={round === '11'} onClick={redirect(11)}>Rd 11</Button>
-      <Button $selected={round === '12'} onClick={redirect(12)}>Rd 12</Button>
-      <Button $selected={round === '13'} onClick={redirect(13)}>Rd 13</Button>
-      <Button $selected={round === '14'} onClick={redirect(14)}>Rd 14</Button>
+    <Row style={{ width: '100%', justifyContent: 'space-between', flexWrap: 'wrap', position: 'fixed', maxWidth: 800, zIndex: 10, background: '#fff', padding: 16 }}>
+      <RButton $selected={!contractFilter} onClick={redirect('')}>ALL</RButton>
+      <RButton $selected={round === '5'} onClick={redirect(5)}>R5</RButton>
+      <RButton $selected={round === '6'} onClick={redirect(6)}>R6</RButton>
+      <RButton $selected={round === '7'} onClick={redirect(7)}>R7</RButton>
+      <RButton $selected={round === '8'} onClick={redirect(8)}>R8</RButton>
+      <RButton $selected={round === '9'} onClick={redirect(9)}>R9</RButton>
+      <RButton $selected={round === '10'} onClick={redirect(10)}>R10</RButton>
+      <RButton $selected={round === '11'} onClick={redirect(11)}>R11</RButton>
+      <RButton $selected={round === '12'} onClick={redirect(12)}>R12</RButton>
+      <RButton $selected={round === '13'} onClick={redirect(13)}>R13</RButton>
+      <RButton $selected={round === '14'} onClick={redirect(14)}>R14</RButton>
+      <RButton $selected={round === '16.1'} onClick={redirect(16.1)}>R16.1</RButton>
+      <RButton $selected={round === '16.2'} onClick={redirect(16.2)}>R16.2</RButton>
+      <RButton $selected={round === '16.3'} onClick={redirect(16.3)}>R16.3</RButton>
     </Row>
-    <div style={{ padding: 16 }}/>
+    <div style={{ padding: 64 }}/>
     <KeyValueDisplay title={'Stablecoin Received Per Wallet Group'} desc={'Wallets are divided into three groups: (1) pre-hacked, those wallets created before the time when the bridge hack took place (2022-06-23T11:06:46.000Z); (2) pre-recovery, meaning those wallets created within 100 days after the time of the bridge hack; and (3) post-recovery, covering all the rest of the wallets'} kv={metrics.StablecoinReceivedPerGroup}/>
     <DescLeft>
       <BaseText>{metrics.NumWallets} wallets participated | {metrics.WalletTypes.eoa} EOA wallets, {metrics.WalletTypes.sc} smart contract wallets (or bots)</BaseText>
