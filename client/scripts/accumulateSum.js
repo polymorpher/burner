@@ -42,6 +42,10 @@ const tryGetDistributionTokenData = async (burner, stableDecimals) => {
   try {
     rate = await burner.methods.distributionTokenValueRate().call()
     const dt = await burner.methods.distributionToken().call()
+    if (dt === '0x0000000000000000000000000000000000000000') {
+      console.log('No distribution token set')
+      return undefined
+    }
     const { symbol, decimals } = await getMeta(dt)
     const price = CLIENT_PRECISION / new BN(rate).muln(CLIENT_PRECISION).div(PRECISION_FACTOR).div(exp10BN(decimals - stableDecimals)).toNumber()
     console.log(`Distribution token=${symbol}, decimals=${decimals}, price=${price}`)

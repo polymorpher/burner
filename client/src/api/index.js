@@ -71,15 +71,17 @@ const apis = ({ web3, address }) => {
       const resetThresholdAmountP = burnerContract.methods.resetThresholdAmount().call()
       const resetPeriodP = burnerContract.methods.resetPeriod().call()
       const isShutdownP = burnerContract.methods.isShutdown().call()
+      const approvedAmountP = tools._getApprvalAmount()
       const [
         perUserLimitAmount,
         minRate, maxRate, baseRate, lastResetTimestamp, stablecoin, stablecoinHolder, resetThresholdAmount, resetPeriod,
         isShutdown,
         distributionToken,
-        distributionTokenValueRate
+        distributionTokenValueRate,
+        approvedAmount
       ] = await Promise.all([perUserLimitAmountP,
         minRateP, maxRateP, baseRateP, lastResetTimestampP, stablecoinP, stablecoinHolderP, resetThresholdAmountP, resetPeriodP,
-        isShutdownP, distributionTokenP, distributionTokenValueRateP])
+        isShutdownP, distributionTokenP, distributionTokenValueRateP, approvedAmountP])
       const tokenMetadata = new Contract(IERC20Metadata, stablecoin)
       const nameP = tokenMetadata.methods.name().call()
       const symbolP = tokenMetadata.methods.symbol().call()
@@ -109,6 +111,7 @@ const apis = ({ web3, address }) => {
           decimals,
         },
         stablecoinHolder,
+        approvedAmount,
         perUserLimitAmount: new BN(perUserLimitAmount).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION,
         resetThresholdAmount: new BN(resetThresholdAmount).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION,
         resetPeriod: parseInt(resetPeriod) * 1000,

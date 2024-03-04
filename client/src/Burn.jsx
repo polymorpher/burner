@@ -495,7 +495,8 @@ const Burn = () => {
                 {!exchangeRate && <TailSpin stroke='grey' width={16} height={16} />}
               </Row>
               <Row>
-                <SmallText style={{ color: 'grey' }}>approx. ${usdOutputValue.toFixed(3)} at the rate of ${parameters.distributionToken?.price ?? '...'} per WONE</SmallText>
+                {parameters.distributionToken?.price &&
+                  <SmallText style={{ color: 'grey' }}>approx. ${usdOutputValue.toFixed(3)} at the rate of ${parameters.distributionToken?.price ?? '...'} per WONE</SmallText>}
               </Row>
             </Col>
             <Row style={{ justifyContent: 'center' }}>
@@ -611,7 +612,7 @@ const Burn = () => {
               <Label>burner authorized amount</Label>
               {(parameters.distributionToken?.address)
                 ? <BaseText>{parameters.distributionToken.approvedAmount} WONE</BaseText>
-                : <BaseText>N/A USD Coin</BaseText>}
+                : <BaseText>{parameters.approvedAmount} USD Coin</BaseText>}
             </Row>
             <Row>
               <Label>burner contract</Label>
