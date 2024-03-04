@@ -580,16 +580,16 @@ const Burn = () => {
               <BaseText>{parameters.resetThresholdAmount} USD Coin</BaseText>
             </Row>
             <Row>
-              <Label>estimated exchange rate in 30m</Label>
-              <BaseText>{estimateRate(60 * 1000 * 30)}</BaseText>
+              <Label>estimated exchange rate in 10m</Label>
+              <BaseText>{estimateRate(60 * 1000 * 10)}</BaseText>
             </Row>
             <Row>
+              <Label>in 20m</Label>
+              <BaseText>{estimateRate(60 * 1000 * 20)}</BaseText>
+              <Label>in 30m</Label>
+              <BaseText>{estimateRate(60 * 1000 * 30)}</BaseText>
               <Label>in 1h</Label>
               <BaseText>{estimateRate(60 * 1000 * 60)}</BaseText>
-              <Label>in 2h</Label>
-              <BaseText>{estimateRate(60 * 1000 * 120)}</BaseText>
-              <Label>in 3h</Label>
-              <BaseText>{estimateRate(60 * 1000 * 180)}</BaseText>
             </Row>
             <Row>
               <Label>your balance</Label>
