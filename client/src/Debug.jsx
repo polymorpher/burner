@@ -110,7 +110,7 @@ const Debug = () => {
     if (!client) {
       return
     }
-    client._getApprvalAmount().then(a => setInputvalue(a))
+    client._getApprovedAmount().then(a => setInputvalue(a))
     client.getAllParameters().then(p => setParameters(p))
   }, [client])
 

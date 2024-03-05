@@ -71,7 +71,7 @@ const apis = ({ web3, address }) => {
       const resetThresholdAmountP = burnerContract.methods.resetThresholdAmount().call()
       const resetPeriodP = burnerContract.methods.resetPeriod().call()
       const isShutdownP = burnerContract.methods.isShutdown().call()
-      const approvedAmountP = tools._getApprvalAmount()
+      const approvedAmountP = tools._getApprovedAmount()
       const [
         perUserLimitAmount,
         minRate, maxRate, baseRate, lastResetTimestamp, stablecoin, stablecoinHolder, resetThresholdAmount, resetPeriod,
@@ -87,16 +87,16 @@ const apis = ({ web3, address }) => {
       const symbolP = tokenMetadata.methods.symbol().call()
       const decimalsP = tokenMetadata.methods.decimals().call()
       const [decimals, symbol, name] = await Promise.all([decimalsP, symbolP, nameP])
-      let distributedTokenDecimals = 0; let distributedTokenSymbol = 'N/A'; let distributedTokenName = 'N/A'; let distributionTokenApprvalAmount = 'N/A'
+      let distributedTokenDecimals = 0; let distributedTokenSymbol = 'N/A'; let distributedTokenName = 'N/A'; let distributionTokenApprovalAmount = 'N/A'
       const hasDistributionToken = distributionToken !== EMPTY_ADDRESS
       if (hasDistributionToken) {
         const distributedTokenMetadata = new Contract(IERC20Metadata, distributionToken)
         const distributedTokenNameP = distributedTokenMetadata.methods.name().call()
         const distributedTokenSymbolP = distributedTokenMetadata.methods.symbol().call()
         const distributedTokenDecimalsP = distributedTokenMetadata.methods.decimals().call()
-        const distributionTokenApprvalAmountP = tools._getDistributionTokenApprvalAmount()
+        const distributionTokenApprovalAmountP = tools._getDistributionTokenApprvalAmount()
         // eslint-disable-next-line no-lone-blocks
-        { [distributedTokenDecimals, distributedTokenSymbol, distributedTokenName, distributionTokenApprvalAmount] = await Promise.all([distributedTokenDecimalsP, distributedTokenSymbolP, distributedTokenNameP, distributionTokenApprvalAmountP]) }
+        { [distributedTokenDecimals, distributedTokenSymbol, distributedTokenName, distributionTokenApprovalAmount] = await Promise.all([distributedTokenDecimalsP, distributedTokenSymbolP, distributedTokenNameP, distributionTokenApprovalAmountP]) }
       }
 
       return {
@@ -117,7 +117,7 @@ const apis = ({ web3, address }) => {
         resetPeriod: parseInt(resetPeriod) * 1000,
         isShutdown,
         distributionToken: {
-          approvedAmount: distributionTokenApprvalAmount,
+          approvedAmount: distributionTokenApprovalAmount,
           address: hasDistributionToken ? distributionToken : undefined,
           name: distributedTokenName,
           symbol: distributedTokenSymbol,
@@ -255,7 +255,7 @@ const apis = ({ web3, address }) => {
       console.log('test passed', tx)
       return stablecoinContract.methods.approve(config.burnerContract, amount).send({ from: address })
     },
-    _getApprvalAmount: async () => {
+    _getApprovedAmount: async () => {
       const stablecoin = await burnerContract.methods.stablecoin().call()
       const stablecoinHolder = await burnerContract.methods.stablecoinHolder().call()
       const stablecoinContract = new Contract(IERC20, stablecoin)
