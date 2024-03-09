@@ -65,6 +65,7 @@ const Burn = () => {
   const [selectAssetVisible, setSelectAssetVisible] = useState(false)
   const [aggValue, setAggValue] = useState(null)
   const [totalAggValue, setTotalAggValue] = useState(null)
+  const [burnedAmountPending, setBurnedAmountPending] = useState(false)
 
   async function init () {
     const provider = await detectEthereumProvider()
@@ -231,6 +232,10 @@ const Burn = () => {
       return
     }
     async function refreshStats () {
+      setBurnedAmountPending(true)
+      if (Object.entries(assetValueRates).length === 0) {
+        return
+      }
       const baseStats = await getBaseStats()
       const newStats = {
         totalBurned: { ...baseStats.totalBurned },
@@ -256,14 +261,24 @@ const Burn = () => {
         const [symbol, amountFormatted] = Object.entries(burned)[0]
         // console.log({ symbol, amountFormatted })
         localAggValue += assetValueRates[a] * amountFormatted
-        console.log(localAggValue, amountFormatted, symbol, assetValueRates[a])
+        console.log('current contract', localAggValue, amountFormatted, symbol, assetValueRates[a])
         newStats.totalBurned[symbol] = (newStats.totalBurned[symbol] || 0) + amountFormatted
         localTotalAggValue += assetValueRates[a] * newStats.totalBurned[symbol]
       }
-      setAggValue(localAggValue)
+      // setAggValue(localAggValue)
       setTotalAggValue(localTotalAggValue)
-      // console.log(newStats)
       setStats(newStats)
+      const burnedAmountsFromOtherContracts = await Promise.all(config.supportedAssets.map(a => client.getCurrentRoundOtherContractBurned({ assetAddress: a })))
+      if (burnedAmountsFromOtherContracts) {
+        for (const [i, a] of config.supportedAssets.entries()) {
+          const burned = burnedAmountsFromOtherContracts[i]
+          const [symbol, amountFormatted] = Object.entries(burned)[0]
+          localAggValue += assetValueRates[a] * amountFormatted
+          console.log('previous contract', localAggValue, amountFormatted, symbol, assetValueRates[a])
+        }
+      }
+      setAggValue(localAggValue)
+      setBurnedAmountPending(false)
     }
     refreshStats()
     // const h = setInterval(() => {
@@ -535,6 +550,7 @@ const Burn = () => {
             <Row>
               <Label>value burned this round</Label>
               <BaseText>{(aggValue || 0).toFixed(3)}</BaseText> <Label>USD</Label>
+              {burnedAmountPending && <TailSpin stroke='grey' width={16} height={16} />}
             </Row>
             <Row>
               <Label>total value burned (all rounds)</Label>

@@ -27,6 +27,41 @@ const apis = ({ web3, address }) => {
       const decimals = await tokenMetadata.methods.decimals().call()
       return { [symbol]: new BN(totalBurned).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION }
     },
+    getCurrentRoundOtherContractBurned: async ({ assetAddress }) => {
+      if (!config.currentRoundStartContract) {
+        return
+      }
+      const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
+      const symbol = await tokenMetadata.methods.symbol().call()
+      const decimals = await tokenMetadata.methods.decimals().call()
+      const index = config.previousBurnerContracts.indexOf(config.currentRoundStartContract)
+      const addresses = config.previousBurnerContracts.slice(0, index + 1)
+      const burned = await Promise.all(addresses.map(async a => {
+        const b = new Contract(Burner, a)
+        const totalBurned = await b.methods.totalBurned(assetAddress).call()
+        return new BN(totalBurned)
+      }))
+      const sum = burned.reduce((a, b) => a.add(b))
+      return { [symbol]: new BN(sum).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION }
+    },
+    getCurrentRoundOtherContractExchanged: async () => {
+      if (!config.currentRoundStartContract) {
+        return
+      }
+      const stablecoin = await burnerContract.methods.stablecoin().call()
+      const tokenMetadata = new Contract(IERC20Metadata, stablecoin)
+      const symbol = await tokenMetadata.methods.symbol().call()
+      const decimals = await tokenMetadata.methods.decimals().call()
+      const index = config.previousBurnerContracts.indexOf(config.currentRoundStartContract)
+      const addresses = config.previousBurnerContracts.slice(0, index + 1)
+      const exchanged = await Promise.all(addresses.map(async a => {
+        const b = new Contract(Burner, a)
+        const t = await b.methods.totalExchanged().call()
+        return new BN(t)
+      }))
+      const sum = exchanged.reduce((a, b) => a.add(b))
+      return { [symbol]: new BN(sum).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION }
+    },
     getTqTransferAllowed: async ({ assetAddress, amountFormatted }) => {
       const c = await new Contract(Comptroller, config.tq.comptroller)
       const tokenMetadata = new Contract(IERC20Metadata, assetAddress)
