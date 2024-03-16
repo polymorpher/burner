@@ -269,7 +269,7 @@ const Burn = () => {
       setTotalAggValue(localTotalAggValue)
       setStats(newStats)
       const burnedAmountsFromOtherContracts = await Promise.all(config.supportedAssets.map(a => client.getCurrentRoundOtherContractBurned({ assetAddress: a })))
-      if (burnedAmountsFromOtherContracts) {
+      if (burnedAmountsFromOtherContracts && burnedAmountsFromOtherContracts[0]) {
         for (const [i, a] of config.supportedAssets.entries()) {
           const burned = burnedAmountsFromOtherContracts[i]
           const [symbol, amountFormatted] = Object.entries(burned)[0]
