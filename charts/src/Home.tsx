@@ -68,9 +68,9 @@ const PercentileDisplay = ({ report, title, desc, decimals = 2, transformer = v 
 }
 
 const ROUND_CONTRACTS = {
-  16.3: '0x24E4F1f87A53FeC0EE05f5e392332d55b97A2FF6'.toLowerCase(),
-  16.2: '0x161aBCDE65c76Ae3489A0732386b0e5041334261'.toLowerCase(),
-  16.1: '0x7a2D7513f5fCaaD2cf2e3438CbCb786474d9fE4D'.toLowerCase(),
+  18: ['0x86574B1E22cf13a8dC02b1c6599E5EF21033334E', '0x254FF07D102c9EeAB30530578B7135208b8DDfF7', '0x4064AD4f7513EDa1C4ebd4BAD637284dd8af6eF1'].map(e => e.toLowerCase()),
+  17: ['0x66a57F53CEB46De83313c23861739dF6E1Dfff93', '0xCF76620cD2AbBDdbd7cD3b3913B13A5600B30C58', '0x607e0e650D70dc2F54855d5F81C18A7E97bAf14a', '0x6d6481e80e894e0F545B060e2AaFaC3C46473094', '0xbCD9daB28Ce59D3Df3e96FEF3EFa5A8aB1f74b96', '0x219Cf0eA0cddb9770c2b9AA31426712347342E14', '0x5F8bA450A4326818b0f670257CcA762C012fa6DA', '0xF7Ed30D0a030662Ca28242816a8fd92C20b424d5', '0x7781b3686079F3286Aa490E4a7aeC36Fa1896837', '0x42D2c66F9D934f6bEA4815DB5f280C211CAFF80C'].map(e => e.toLowerCase()),
+  16: ['0x7a2D7513f5fCaaD2cf2e3438CbCb786474d9fE4D', '0x161aBCDE65c76Ae3489A0732386b0e5041334261', '0x24E4F1f87A53FeC0EE05f5e392332d55b97A2FF6'].map(e => e.toLowerCase()),
   14: '0xc9aFd7b4f658EA3B56bCA685C66F5Ed2eB018BF4'.toLowerCase(),
   13: '0x6Cffea1d811d96C52750D23D9f49B3868F036E8B'.toLowerCase(),
   12: '0x4684C204DD149C679B4ABfF3A4e7d19C34a4EDE4'.toLowerCase(),
@@ -93,7 +93,7 @@ const getSelectedRound = (): string => {
   return last
 }
 
-const getRoundContract = (round): null | string => {
+const getRoundContract = (round): null | string | string[] => {
   if (!round) {
     return null
   }
@@ -117,7 +117,11 @@ const Home = (): React.FC => {
     if (!contractFilter) {
       return Events
     }
-    return Events.filter(e => e.burner.toLowerCase() === contractFilter)
+    if (typeof contractFilter === 'string') {
+      return Events.filter(e => e.burner.toLowerCase() === contractFilter)
+    } else {
+      return Events.filter(e => contractFilter.includes(e.burner.toLowerCase()))
+    }
   }, [contractFilter])
 
   const metrics = useMemo(() => {
@@ -148,9 +152,9 @@ const Home = (): React.FC => {
       <RButton $selected={round === '12'} onClick={redirect(12)}>R12</RButton>
       <RButton $selected={round === '13'} onClick={redirect(13)}>R13</RButton>
       <RButton $selected={round === '14'} onClick={redirect(14)}>R14</RButton>
-      <RButton $selected={round === '16.1'} onClick={redirect(16.1)}>R16.1</RButton>
-      <RButton $selected={round === '16.2'} onClick={redirect(16.2)}>R16.2</RButton>
-      <RButton $selected={round === '16.3'} onClick={redirect(16.3)}>R16.3</RButton>
+      <RButton $selected={round === '16'} onClick={redirect(16)}>R16</RButton>
+      <RButton $selected={round === '17'} onClick={redirect(17)}>R17</RButton>
+      <RButton $selected={round === '18'} onClick={redirect(18)}>R18</RButton>
     </Row>
     <div style={{ padding: 64 }}/>
     <KeyValueDisplay title={'Stablecoin Received Per Wallet Group'} desc={'Wallets are divided into three groups: (1) pre-hacked, those wallets created before the time when the bridge hack took place (2022-06-23T11:06:46.000Z); (2) pre-recovery, meaning those wallets created within 100 days after the time of the bridge hack; and (3) post-recovery, covering all the rest of the wallets'} kv={metrics.StablecoinReceivedPerGroup}/>
