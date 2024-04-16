@@ -299,7 +299,7 @@ export const PlotLineBurnEfficiencyOverTime = ({ events, wallets, ...props }: Ch
       type: 'datetime',
       labels: { format: '{value:%Y-%m-%d}' }
     }],
-    yAxis: [{ title: { text: 'USD Burned' } }],
+    yAxis: [{ title: { text: 'Cumulative Burn Rate' } }],
     series: [{
       name: 'Burn Efficiency v. Time',
       data: finalAggCumu,
