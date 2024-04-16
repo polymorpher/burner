@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 import { type StaticJsonRpcProvider } from '@ethersproject/providers'
 import axios from 'axios'
 import { WebSocket } from 'ws'
-import { type Wallet } from './types.ts'
+import { type TransactionHistoryQuery, type TransactionHistoryResponse, type Wallet } from './types.ts'
 dotenv.config()
 
 const EXPLORER_URL = process.env.EXPLORER_URL ?? 'wss://ws.explorer-v2-api.hmny.io/socket.io/?EIO=4&transport=websocket'
@@ -65,46 +65,6 @@ const getContractCreateHash = async (address: string): Promise<string> => {
 }
 
 // const HACK_TIME = Number(process.env.HACK_TIME ?? '1655982406')
-
-interface TransactionHistoryQuery {
-  jsonrpc: string
-  method: string
-  params: [{
-    address: string
-    pageIndex: number
-    pagesize: number
-    fullTx: boolean
-    txType: string
-    order: string
-  }]
-  id: number
-}
-
-interface TransactionHistoryResponse {
-  jsonrpc: string
-  id: string
-  result: {
-    transactions: [{
-      blockHash: string
-      blockNumber: number
-      from: string
-      gas: number
-      gasPrice: number
-      hash: string
-      input: string
-      nonce: number
-      timestamp: number
-      to: string
-      transactionIndex: number
-      value: number
-      shardID: number
-      toShardID: number
-      v: string
-      r: string
-      s: string
-    }]
-  }
-}
 
 async function parseEOA (address: string, provider: StaticJsonRpcProvider): Promise<Wallet> {
   const q: TransactionHistoryQuery = {
