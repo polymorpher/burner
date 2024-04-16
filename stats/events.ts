@@ -34,12 +34,13 @@ export async function parseRange (burner: Burner): Promise<[ number, number ]> {
   while (data.result.transactions.length >= pagesize) {
     index += 1
     data = await querySinglePage(index, pagesize, address, url)
+    if (data.result.transactions.length > 0) {
+      to = data.result.transactions[data.result.transactions.length - 1].blockNumber
+    }
     console.debug(`[parseRange] ${burner.address}: ${from}, ${to}`)
     await new Promise((resolve) => setTimeout(resolve, 500))
   }
-  if (data.result.transactions.length > 0) {
-    to = data.result.transactions[data.result.transactions.length - 1].blockNumber
-  }
+
   return [from, to]
 }
 
