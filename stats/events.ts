@@ -29,8 +29,8 @@ export async function parseRange (burner: Burner): Promise<[ number, number ]> {
   let index = 0
   const pagesize = 50
   let data = await querySinglePage(index, pagesize, address, url)
-  const from = data.result.transactions[0].blockNumber
-  let to = data.result.transactions[data.result.transactions.length - 1].blockNumber
+  const from = data.result.transactions?.length ? data.result.transactions[0].blockNumber : 0
+  let to = data.result.transactions?.length ? data.result.transactions[data.result.transactions.length - 1].blockNumber : 0
   while (data.result.transactions.length >= pagesize) {
     index += 1
     data = await querySinglePage(index, pagesize, address, url)
@@ -50,6 +50,9 @@ export async function parseBlocks (from: number, to: number, burner: Burner): Pr
     const [a, b] = await parseRange(burner)
     from = a
     to = b
+  }
+  if (to === 0 && from === 0) {
+    return []
   }
   if (to - from > STEP) {
     const eventLogs: EventLog[] = []
