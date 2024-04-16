@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { ethers } from 'hardhat'
 import config from '../config'
 import BN from 'bn.js'
-import { Burner } from '../typechain'
+import { Burner, USDOracleInterface } from '../typechain'
 const PRECISION_FACTOR = new BN(10).pow(new BN(18))
 const PARAMETER_PRECISION = 1e+9
 
@@ -16,6 +16,7 @@ const getMeta = async (address) => {
 
 const exp10BN = n => new BN(10).pow(new BN(n))
 const f = async function (hre: HardhatRuntimeEnvironment) {
+  console.log(`USD Oracle: ${config.usdOracle}`)
   const { deployments: { deploy }, getNamedAccounts } = hre
   const { deployer } = await getNamedAccounts()
   const { decimals: stableDecimals, symbol: stableSymbol, name: stableName } = await getMeta(config.stablecoinAddress)
@@ -47,7 +48,8 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
       tokenAddresses,
       tokenValueAmounts,
       config.distributionToken || ethers.constants.AddressZero,
-      initDistributionTokenValueRate.toString()
+      initDistributionTokenValueRate.toString(),
+      config.usdOracle
     ],
     log: true,
     autoMine: true
@@ -100,6 +102,11 @@ const f = async function (hre: HardhatRuntimeEnvironment) {
     displayObj[k] = displayObj[k].toString()
   })
   console.log('Please manually verify parameters:', displayObj)
+  if (config.usdOracle) {
+    const usdOracle = await ethers.getContractAt('USDOracleInterface', config.usdOracle) as USDOracleInterface
+    const p = await usdOracle.latestAnswer()
+    console.log(`Current USD Oracle Rate: ${await usdOracle.latestAnswer()} (=${p.toNumber() / 1e+9})`)
+  }
 }
 f.tags = ['Burner']
 export default f

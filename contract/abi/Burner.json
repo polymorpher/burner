@@ -30,6 +30,11 @@
         "internalType": "uint256",
         "name": "_distributionTokenValueRate",
         "type": "uint256"
+      },
+      {
+        "internalType": "contract USDOracleInterface",
+        "name": "_usdOracle",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -102,6 +107,31 @@
       }
     ],
     "name": "Paused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "oldRate",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newRate",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "numStablecoinDecimals",
+        "type": "uint256"
+      }
+    ],
+    "name": "TokenValueRateUpdated",
     "type": "event"
   },
   {
@@ -254,6 +284,31 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getPastDistributionExchangeAmounts",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "distributionTokenValueRate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalExchangeAmountInStablecoin",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct Burner.DistributionTokenStats[]",
+        "name": "",
+        "type": "tuple[]"
       }
     ],
     "stateMutability": "view",
@@ -556,6 +611,32 @@
     "name": "updateAllowList",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "numStablecoinDecimals",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateDistributionTokenValueRate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "usdOracle",
+    "outputs": [
+      {
+        "internalType": "contract USDOracleInterface",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

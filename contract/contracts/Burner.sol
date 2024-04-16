@@ -11,11 +11,16 @@ interface IERC20Burnable is IERC20 {
     function burnFrom(address account, uint256 amount) external;
 }
 
+interface USDOracleInterface {
+    function latestAnswer() external view returns (uint256);
+}
+
 // This contract was developed using `RemBurner` by @brucdarc as a guideline
 // See https://github.com/brucdarc/burn-mechanism/blob/83af811e6a31c721d59284735eca939dba23525d/contracts/Remburner.sol
 // `RemBurner` was licensed under GPL-3.0
 contract Burner is Pausable, Ownable {
     event Burned(address indexed user, address indexed asset, address indexed stablecoin, uint256 burnedAmount, uint256 stablecoinAmount);
+    event TokenValueRateUpdated(uint256 oldRate, uint256 newRate, uint256 numStablecoinDecimals);
 
     uint256 constant PRECISION_FACTOR = 1e18;
 
@@ -29,6 +34,8 @@ contract Burner is Pausable, Ownable {
     address public stablecoinHolder; // the address of the wallet which holds the stablecoin. The address should approve this contract's address up to a sufficient amount, so that this contract can send the stablecoin on behalf of the `stablecoinHolder` wallet to users
     address public distributionToken; // if set, send this token to users in lieu of stablecoin from stablecoinHolder
     uint256 public distributionTokenValueRate; // The value represents the rate for each 1 fractional unit of stablecoin, how many fractional unit of distributionToken should be sent, multiplied by PRECISION_FACTOR. If distributionToken is WONE (0xcF664087a5bB0237a0BAd6742852ec6c8d69A27a) which has 18-decimals, and the price of WONE is $0.015 per WONE, and stablecoin is USDC, which has 6-decimals, then distributionTokenValueRate should be 1e+18 / 0.015 / 1e+6 * 1e+18 = 6.67e+31. To see that, note the invariant a * (V / C) = b where V is distributionTokenValueRate, C is PRECISION_FACTOR, a is the number of fractional units of stablecoin, and b is the number of fractional units of distributionToken. We know that in the WONE (p = $0.015) and USDC scenario above, 1e+6 * (V / C) = (1 / p) * 1e+18, hence V = (1 / p) * 1e+18 / 1e+6 * C = 1e+12 / p * 1e+18 = ~6.67e+31
+
+
 
     uint256 public resetThresholdAmount; // The number of stablecoins (in fractional-units) cumulatively received by the users to trigger a "reset event". A "reset event" would result in the current exchange rate to be decreased to minRate. When any user burns their ERC20 tokens, they could receive some stablecoins, thereby contribute towards the reset threshold. Note that the current exchange rate linearly decreases proportionally to the ratio of `#stablecoins received by the user / reset threshold` no matter whether the reset threshold is reached. For example, if we want to trigger a reset event at the threshold of 250 USDS (which has 6 decimals), then resetThresholdAmount is 2.5e+8
     uint256 public resetPeriod = 3 hours; // as time elapses after each reset, the exchange rate linearly increases over time, proportional to the ratio of `time elapsed / resetPeriod`
@@ -46,6 +53,16 @@ contract Burner is Pausable, Ownable {
     uint256 public totalExchanged;
     mapping(address => uint256) public totalBurned;
 
+    struct DistributionTokenStats {
+        uint256 distributionTokenValueRate;
+        uint256 totalExchangeAmountInStablecoin;
+    }
+
+    DistributionTokenStats[] private pastDistributionExchangeAmounts;
+
+    USDOracleInterface public usdOracle;
+
+
     modifier onlyAllowedAddresses() {
         require(!useAllowList || allowList[msg.sender], "not on list");
         _;
@@ -55,7 +72,8 @@ contract Burner is Pausable, Ownable {
         _;
     }
 
-    constructor (address _stablecoin, uint256 _maxRate, address[] memory tokenAddresses, uint256[] memory exchangeRates, address _distributionToken, uint256 _distributionTokenValueRate) {
+    constructor (address _stablecoin, uint256 _maxRate, address[] memory tokenAddresses, uint256[] memory exchangeRates, address _distributionToken, uint256 _distributionTokenValueRate,
+        USDOracleInterface _usdOracle) {
         stablecoin = _stablecoin;
         maxRate = _maxRate;
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
@@ -63,6 +81,7 @@ contract Burner is Pausable, Ownable {
         }
         distributionToken = _distributionToken;
         distributionTokenValueRate = _distributionTokenValueRate;
+        usdOracle = _usdOracle;
     }
 
 
@@ -92,6 +111,21 @@ contract Burner is Pausable, Ownable {
             allowList[addresses[i]] = allowed[i];
         }
         useAllowList = _useAllowList;
+    }
+
+    function getPastDistributionExchangeAmounts() public view returns (DistributionTokenStats[] memory){
+        return pastDistributionExchangeAmounts;
+    }
+
+    function updateDistributionTokenValueRate(uint256 numStablecoinDecimals) external {
+        require(msg.sender == stablecoinHolder, "only stablecoinHolder allowed");
+        require(numStablecoinDecimals > 0, "invalid decimal");
+        uint256 usdRate = uint256(usdOracle.latestAnswer());
+        uint256 oldRate = distributionTokenValueRate;
+        DistributionTokenStats memory stats = DistributionTokenStats(oldRate, totalExchanged);
+        pastDistributionExchangeAmounts.push(stats);
+        distributionTokenValueRate = 1e27 / (10**numStablecoinDecimals) * PRECISION_FACTOR / usdRate;
+        emit TokenValueRateUpdated(oldRate, distributionTokenValueRate, numStablecoinDecimals);
     }
 
     /// See `minRate` for the definition of "exchange rate". This function computes the current exchange rate based on time and the cumulative amount of stablecoins cumulatively received by the users since the last reset event

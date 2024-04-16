@@ -19,5 +19,6 @@ export default {
   perUserLimitAmount: parseFloat(process.env.PER_USER_LIMIT_AMOUNT || (1000).toString()),
   tokenAssetValue: JSON.parse(process.env.TOKEN_ASSET_VALUE || '{}'),
   distributionToken: process.env.DISTRIBUTION_TOKEN || '',
-  distributionTokenPrice: Number(process.env.DISTRIBUTION_TOKEN_PRICE || '0')
+  distributionTokenPrice: Number(process.env.DISTRIBUTION_TOKEN_PRICE || '0'),
+  usdOracle: process.env.USD_ORACLE || '',
 }
