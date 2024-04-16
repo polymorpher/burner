@@ -97,6 +97,7 @@ const apis = ({ web3, address }) => {
       const perUserLimitAmountP = burnerContract.methods.perUserLimitAmount().call()
       const distributionTokenP = burnerContract.methods.distributionToken().call()
       const distributionTokenValueRateP = burnerContract.methods.distributionTokenValueRate().call()
+      const pastDistributionExchangeAmountsP = burnerContract.methods.pastDistributionExchangeAmounts().call()
       const minRateP = burnerContract.methods.minRate().call()
       const maxRateP = burnerContract.methods.maxRate().call()
       const baseRateP = burnerContract.methods.baseRate().call()
@@ -113,16 +114,18 @@ const apis = ({ web3, address }) => {
         isShutdown,
         distributionToken,
         distributionTokenValueRate,
-        approvedAmount
+        approvedAmount,
+        pastDistributionExchangeAmounts
       ] = await Promise.all([perUserLimitAmountP,
         minRateP, maxRateP, baseRateP, lastResetTimestampP, stablecoinP, stablecoinHolderP, resetThresholdAmountP, resetPeriodP,
-        isShutdownP, distributionTokenP, distributionTokenValueRateP, approvedAmountP])
+        isShutdownP, distributionTokenP, distributionTokenValueRateP, approvedAmountP, pastDistributionExchangeAmountsP])
       const tokenMetadata = new Contract(IERC20Metadata, stablecoin)
       const nameP = tokenMetadata.methods.name().call()
       const symbolP = tokenMetadata.methods.symbol().call()
       const decimalsP = tokenMetadata.methods.decimals().call()
       const [decimals, symbol, name] = await Promise.all([decimalsP, symbolP, nameP])
       let distributedTokenDecimals = 0; let distributedTokenSymbol = 'N/A'; let distributedTokenName = 'N/A'; let distributionTokenApprovalAmount = 'N/A'
+      let distributionTokenStats = []
       const hasDistributionToken = distributionToken !== EMPTY_ADDRESS
       if (hasDistributionToken) {
         const distributedTokenMetadata = new Contract(IERC20Metadata, distributionToken)
@@ -132,6 +135,13 @@ const apis = ({ web3, address }) => {
         const distributionTokenApprovalAmountP = tools._getDistributionTokenApprvalAmount()
         // eslint-disable-next-line no-lone-blocks
         { [distributedTokenDecimals, distributedTokenSymbol, distributedTokenName, distributionTokenApprovalAmount] = await Promise.all([distributedTokenDecimalsP, distributedTokenSymbolP, distributedTokenNameP, distributionTokenApprovalAmountP]) }
+      }
+      if (pastDistributionExchangeAmounts) {
+        distributionTokenStats = pastDistributionExchangeAmounts.map(([valueRate, stableAmount]) => {
+          const rate = exp10BN(distributedTokenDecimals - decimals).mul(PRECISION_FACTOR).mul(new BN(CLIENT_PRECISION)).div(new BN(valueRate)).toNumber() / CLIENT_PRECISION
+          const amount = new BN(stableAmount).muln(CLIENT_PRECISION).div(exp10BN(decimals)).toNumber() / CLIENT_PRECISION
+          return { rate, amount }
+        })
       }
 
       return {
@@ -157,7 +167,8 @@ const apis = ({ web3, address }) => {
           name: distributedTokenName,
           symbol: distributedTokenSymbol,
           decimals: distributedTokenDecimals,
-          price: hasDistributionToken ? (exp10BN(distributedTokenDecimals - decimals).mul(PRECISION_FACTOR).mul(new BN(CLIENT_PRECISION)).div(new BN(distributionTokenValueRate)).toNumber() / CLIENT_PRECISION) : 1
+          price: hasDistributionToken ? (exp10BN(distributedTokenDecimals - decimals).mul(PRECISION_FACTOR).mul(new BN(CLIENT_PRECISION)).div(new BN(distributionTokenValueRate)).toNumber() / CLIENT_PRECISION) : 1,
+          distributionTokenStats
         },
       }
     },
