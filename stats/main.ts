@@ -41,10 +41,10 @@ async function dumpEventLogs (): Promise<void> {
     const eventLogs = await getEventsForContractConfig(cc)
     if (eventLogs.length === 0) {
       console.debug(`Skipping writing to CSV since no data is retrieved from ${cc.address}`)
-    } else {
-      const csv = await parser.parse(eventLogs).promise()
-      await f.write(csv)
+      continue
     }
+    const csv = await parser.parse(eventLogs).promise()
+    await f.write(csv)
     if (i !== CONTRACT_CONFIGS.length - 1) {
       await f.write('\n')
     }
