@@ -97,7 +97,7 @@ const apis = ({ web3, address }) => {
       const perUserLimitAmountP = burnerContract.methods.perUserLimitAmount().call()
       const distributionTokenP = burnerContract.methods.distributionToken().call()
       const distributionTokenValueRateP = burnerContract.methods.distributionTokenValueRate().call()
-      const pastDistributionExchangeAmountsP = burnerContract.methods.pastDistributionExchangeAmounts().call()
+      const pastDistributionExchangeAmountsP = burnerContract.methods.getPastDistributionExchangeAmounts ? burnerContract.methods.getPastDistributionExchangeAmounts().call() : undefined
       const minRateP = burnerContract.methods.minRate().call()
       const maxRateP = burnerContract.methods.maxRate().call()
       const baseRateP = burnerContract.methods.baseRate().call()
