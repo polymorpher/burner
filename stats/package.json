@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@json2csv/node": "^7.0.1",
-    "axios": "^1.4.0",
+    "axios": "^1.7.8",
     "dotenv": "^16.1.4",
     "ethers": "^5.6.7",
     "lodash-es": "^4.17.21",

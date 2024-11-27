@@ -3,6 +3,7 @@ import { type StaticJsonRpcProvider } from '@ethersproject/providers'
 import axios from 'axios'
 import { WebSocket } from 'ws'
 import { type TransactionHistoryQuery, type TransactionHistoryResponse, type Wallet } from './types.ts'
+
 dotenv.config()
 
 const EXPLORER_URL = process.env.EXPLORER_URL ?? 'wss://ws.explorer-v2-api.hmny.io/socket.io/?EIO=4&transport=websocket'
@@ -22,7 +23,7 @@ export const initWs = async (): Promise<WebSocket> => {
     })
     ws.on('open', function open () {
       ws.send('40')
-    // ws.send('420["getContractsByField",[0,"address","0x041d5200177b91174477ce0badef402d8e8229c3"]]');
+      // ws.send('420["getContractsByField",[0,"address","0x041d5200177b91174477ce0badef402d8e8229c3"]]');
     })
     const listener = (data): void => {
       // eslint-disable-next-line @typescript-eslint/no-base-to-string
@@ -81,6 +82,7 @@ async function parseEOA (address: string, provider: StaticJsonRpcProvider): Prom
     id: 1
   }
   const { data: { result } } = await axios.post<TransactionHistoryResponse>(provider.connection.url, q)
+
   if (!result.transactions?.[0]?.timestamp) {
     console.error(`Warning: ${address} is parsed as EOA but has no historical transaction`)
   }
@@ -93,6 +95,8 @@ async function parseEOA (address: string, provider: StaticJsonRpcProvider): Prom
 }
 
 async function parseSC (address: string, provider: StaticJsonRpcProvider): Promise<Wallet> {
+  console.error('Function is deprecated and should not be called since smart contract is unable to interact with burner anymore. Please check input')
+  process.exit(1)
   const createTx = await getContractCreateHash(address)
   if (!createTx) {
     console.error(`Unable to parse SC wallet ${address}, treating wallet as EOA`)
@@ -106,10 +110,11 @@ async function parseSC (address: string, provider: StaticJsonRpcProvider): Promi
     createdAt: b.timestamp
   }
 }
+
 export async function parseWallet (address: string, provider: StaticJsonRpcProvider): Promise<Wallet> {
   const code = await provider.getCode(address)
-  const creationHash = await getContractCreateHash(address)
-  if (code === '0x' && !creationHash) {
+  // const creationHash = await getContractCreateHash(address)
+  if (code === '0x') {
     return await parseEOA(address, provider)
   }
   return await parseSC(address, provider)
